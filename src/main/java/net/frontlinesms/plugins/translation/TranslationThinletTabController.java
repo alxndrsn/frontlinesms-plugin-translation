@@ -30,7 +30,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	/** Filename and path of the XML for the Translation tab. */
 	private static final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
 	
-	//private final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
+	private final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
 	private final String UI_COMPONENT_BT_SAVE = "saveTranslations";
 
 //> INSTANCE VARIABLES
