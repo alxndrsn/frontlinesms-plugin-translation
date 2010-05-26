@@ -73,7 +73,7 @@ public class MasterTranslationFile extends LanguageBundle {
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
 		try {
-			File file = new File(targetDirectory, this.filename);
+			File file = new File(targetDirectory, "fake_" + this.filename);
 			fos = new FileOutputStream(file);
 			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
 			out = new PrintWriter(osw);
@@ -262,14 +262,19 @@ public class MasterTranslationFile extends LanguageBundle {
 	}
 
 	public void add(String textKey, String textValue) {
-		super.getProperties().put(textKey, textValue);
-		try {
-			// Attempt to update the translation in the current files
-			updateTranslation(textKey, textValue);
-		} catch(KeyNotFoundException ex) {
-			// Add to the extra translations
-			this.extraTranslations.addLine(textKey + "=" + textValue);
+		if (textValue.equals("")) {
+			this.delete(textKey);
+		} else {
+			super.getProperties().put(textKey, textValue);
+			try {
+				// Attempt to update the translation in the current files
+				updateTranslation(textKey, textValue);
+			} catch(KeyNotFoundException ex) {
+				// Add to the extra translations
+				this.extraTranslations.addLine(textKey + "=" + textValue);
+			}			
 		}
+		
 	}
 
 	/**
@@ -288,6 +293,7 @@ public class MasterTranslationFile extends LanguageBundle {
 			TextFileContent tfc = getTextFileContent(textKey);
 			String line = tfc.getLine(textKey);
 			tfc.removeLine(line);
+			super.getProperties().remove(textKey);
 		} catch (KeyNotFoundException e) {
 			throw new IllegalStateException("Could not delete text with key '" + textKey + "' because it does not exist.");
 		}
@@ -336,6 +342,9 @@ class TextFileContent {
 	}
 	
 	void addLine(String line) {
+		if (line.contains("Core")) {
+			int i = 0;
+		}
 		this.lines.add(line);
 	}
 	
@@ -371,7 +380,7 @@ class TextFileContent {
 	void updateValue(String textKey, String newValue) throws KeyNotFoundException {
 		String oldLine = getLine(textKey);
 		String newLine = textKey + "=" + newValue;
-		this.lines.set(lines.indexOf(oldLine), newLine);
+		this.lines.set(lines.indexOf(oldLine), newLine);	
 	}
 	
 	static TextFileContent getFromMap(String description, Map<String, String> map) {

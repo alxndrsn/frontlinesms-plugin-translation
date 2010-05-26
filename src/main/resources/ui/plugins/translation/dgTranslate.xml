@@ -10,7 +10,7 @@
 	<textfield name="tfLocal" columns="30" perform="saveText(tfKey.text, tfLocal.text)"/>
 	
 	<panel halign="center" gap="8" colspan="2">
-		<button text="i18n.action.save" action="saveText(tfKey.text, tfLocal.text)" icon="/icons/tick.png"/> 
+		<button text="i18n.action.ok" action="saveText(tfKey.text, tfLocal.text)" icon="/icons/tick.png"/> 
 		<button text="i18n.action.cancel" action="removeEditDialog" icon="/icons/cross.png"/>
 	</panel> 
 </dialog>
