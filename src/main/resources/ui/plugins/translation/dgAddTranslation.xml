@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dialog closable="true" close="removeDialog" icon="/icons/translate_add.png" bottom="4" columns="2" gap="8" left="4" modal="true" name="languageSelectionDialog" right="4" text="i18n.plugins.translation.new.translation" top="4">
+	<panel bottom="10" columns="1" gap="10" left="10" right="10" top="10">
+	    <panel columns="2" gap="5" weightx="1" weighty="1">
+	        <label name="lbTypeLanguage" icon="/icons/language.png" font="bold" text="i18n.plugins.translation.type.language"/>
+	        <textfield action="fieldChanged(this.text, tfISOCode.text)" name="tfLanguage" weightx="1" columns="35"/>
+	    </panel>
+	    <panel columns="2" gap="5" weightx="1" weighty="1">
+	        <label name="lbTypeLanguage" icon="/icons/language.png" font="bold" text="i18n.plugins.translation.type.iso.code"/>
+	        <textfield action="fieldChanged(tfLanguage.text, this.text)" name="tfISOCode" weightx="1" columns="5"/>
+	    </panel>
+	    <panel columns="2" gap="5" weightx="1" weighty="1">
+			<label text="i18n.plugins.translations.pick.flag" icon="/icons/flags/gb.png" font="bold"/>
+	    	<combobox action="fieldChanged(tfLanguage.text, tfISOCode.text)" editable="false" name="cbCountries">
+	    		<!-- This is automatically populated in the New Translation Handler -->
+			</combobox>
+	    </panel>
+	    <panel columns="1" gap="5" weightx="1" weighty="1" halign="left">
+	        <label name="lbTypeLanguage" font="11" text="i18n.plugins.translation.english.too"/>
+	        <button type="link" font="11" action="openBrowser('http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes')" text="i18n.plugins.translation.help.iso.639-1"/>
+	    </panel>
+	    <panel gap="5" halign="center" weightx="1">
+	        <button action="createNewTranslation(tfLanguage.text, tfISOCode.text)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
+	        <button action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
+	    </panel>
+	</panel>
+</dialog>

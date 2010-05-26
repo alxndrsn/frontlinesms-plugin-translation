@@ -73,7 +73,7 @@ public class MasterTranslationFile extends LanguageBundle {
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
 		try {
-			File file = new File(targetDirectory, "fake_" + this.filename);
+			File file = new File(targetDirectory, this.filename);
 			fos = new FileOutputStream(file);
 			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
 			out = new PrintWriter(osw);
