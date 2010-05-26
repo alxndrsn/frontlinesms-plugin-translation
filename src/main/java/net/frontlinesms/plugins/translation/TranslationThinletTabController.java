@@ -5,6 +5,8 @@ package net.frontlinesms.plugins.translation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -247,6 +249,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	private void refreshTables() {
 		MasterTranslationFile lang = getSelectedLanguageBundle();
 		MasterTranslationFile defaultLang = getDefaultLanguageBundle();
+		Comparator<Object> comparator = new PropertyRowComparator(this.ui);  
 		
 		this.translationTableRows = new HashMap<TranslationView, List<Object>>();
 		
@@ -263,6 +266,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			Object tableRow = createTableRow(key, defaultEntry.getValue(), langValue);
 			allRows.add(tableRow);
 		}
+		
+		Collections.sort(allRows, comparator);
 		this.translationTableRows.put(TranslationView.ALL, allRows);
 		
 		LanguageBundleComparison comp = new LanguageBundleComparison(defaultLang, lang);
@@ -274,6 +279,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			Object tableRow = createTableRow(key, comp.get1(key), "");
 			missingRows.add(tableRow);
 		}
+		
+		Collections.sort(missingRows, comparator);
 		this.translationTableRows.put(TranslationView.MISSING, missingRows);
 
 		// populate and enable the extra table
@@ -283,6 +290,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			Object tableRow = createTableRow(key, "", comp.get2(key));
 			extraRows.add(tableRow);
 		}
+		
+		Collections.sort(extraRows, comparator);
 		this.translationTableRows.put(TranslationView.EXTRA, extraRows);
 		
 		initTable(TranslationView.ALL);
@@ -353,6 +362,28 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	private Object getFilterTextfield() {
 		return find("tfTranslationFilter");
+	}
+	
+	/**
+	 * Classe used to sort the properties alphabetically in the lists
+	 * @author Morgan Belkadi <morgan@frontlinesms.com>
+	 */
+	public class PropertyRowComparator implements Comparator<Object> {
+		/** Instance of {@link UiGeneratorController} used to get the attached objects */
+		private UiGeneratorController ui;
+
+		public PropertyRowComparator (UiGeneratorController ui) {
+			this.ui = ui;
+		}
+		
+		/**
+		 * Inherited compare method from Comparator interface
+		 * Comparison is made on the attached object (String) 
+		 */
+		public int compare(Object o1, Object o2) {
+			return ((Comparable)this.ui.getAttachedObject(o1)).compareTo(this.ui.getAttachedObject(o2));
+		}
+		
 	}
 }
 
