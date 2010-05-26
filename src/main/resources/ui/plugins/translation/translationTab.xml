@@ -20,7 +20,7 @@
 					<button action="restartFrontlineSMS" icon="/icons/refresh.png" text="i18n.plugins.translation.restart.frontline"/>	
 				</panel>
 				<tabbedpane action="tabChanged(this.selected)" name="tpTranslations" weightx="1" weighty="1" colspan="2">
-					<tab text="i18n.plugins.translation.translations.all" name="tbAll">
+					<tab icon="/icons/translate.png" text="i18n.plugins.translation.translations.all" name="tbAll">
 						<panel gap="8" columns="1" weightx="1" weighty="1">
 							<table selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText">
 								<header>
@@ -31,7 +31,7 @@
 							</table>
 						</panel>
 					</tab>
-					<tab text="i18n.plugins.translation.translations.missing" name="tbMissing">
+					<tab icon="/icons/translate_delete.png" text="i18n.plugins.translation.translations.missing" name="tbMissing">
 						<table selection="multiple" name="tbMissingTranslations" perform="editText">
 							<header>
 								<column text="i18n.plugins.translation.key" width="230"/>
@@ -40,7 +40,7 @@
 							</header>
 						</table>
 					</tab>
-					<tab text="i18n.plugins.translation.translations.extra" name="tbExtra">
+					<tab icon="/icons/translate_add.png" text="i18n.plugins.translation.translations.extra" name="tbExtra">
 						<table selection="multiple" name="tbExtraTranslations" perform="editText">
 							<header>
 								<column text="i18n.plugins.translation.key" width="230"/>

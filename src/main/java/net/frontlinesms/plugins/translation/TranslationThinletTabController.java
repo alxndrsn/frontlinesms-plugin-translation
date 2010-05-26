@@ -352,7 +352,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 				} else {
 					// "New" button is always enabled
 					// "Edit" button is only enabled if a language different than the default language (English) is selected
-					boolean isEnabled = (name.equals(COMPONENT_TRANSLATION_CREATE) || selected != 0);
+					boolean isEnabled = (name.equals(COMPONENT_TRANSLATION_CREATE) || selected > 0);
 					ui.setEnabled(o, isEnabled);
 				}
 			}
@@ -375,8 +375,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	private Object createTableRow(String... columnValues) {
 		assert(columnValues.length > 0) : "The translation key should be provided as the first column value.";
 		Object row = ui.createTableRow(columnValues[0]);
-		for(String col : columnValues) {
-			ui.add(row, ui.createTableCell(col));
+		for(int i = 0 ; i < columnValues.length ; ++i) {
+			String col = columnValues[i];
+			ui.add(row, ui.createTableCell(col, (i == 0)));
 		}
 		return row;
 	}
