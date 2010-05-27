@@ -165,6 +165,11 @@ public class MasterTranslationFile extends LanguageBundle {
 		} else throw new RuntimeException("Too many bits in " + filename);
 		return MasterTranslationFile.get(file, locale);
 	}
+	
+
+	public static String getIdentifier(String filename) {
+		return IDENTIFIER_PREFIX + filename;
+	}
 
 	/** @return {@link MasterTranslationFile} for the supplied file */
 	static MasterTranslationFile get(File file, Locale locale) {

@@ -4,7 +4,11 @@
 package net.frontlinesms.plugins.translation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -511,6 +515,41 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	public UiGeneratorController getUIGeneratorController() {
 		return this.ui;
 	}
+	
+	public void createNewLanguageFile(String languageName, String isoCode, String countryCode) throws FileNotFoundException {
+		FileOutputStream fos = null;
+		OutputStreamWriter osw = null;
+		PrintWriter out = null;
+		String filename = "frontlineSMS_" + isoCode + ".properties";
+		
+		try {
+			File file = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", filename);
+			fos = new FileOutputStream(file);
+			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
+			out = new PrintWriter(osw);
+			out.write("# The 2-letter ISO-? code for the language\n" +
+					"bundle.language=" + isoCode + "\n" +
+					"# The name of the language IN THAT LANGUAGE - this is how the language will be chosen from\n" +
+					"# menus, so it's important that speakers of that language actually understand this.  If the\n" +
+					"# language name is in a non-Latin alphabet, a latinised or English version of the language\n" +
+					"# name should also be provided, as some fonts will not display the non-Latin version\n" +
+					"bundle.language.name=" + languageName + "\n" +
+					"# 2-letter ISO-? code for the country where they speak this language.  This is used to get\n" +
+					"# a flag to represent this language\n" +
+					"bundle.language.country=" + countryCode + "\n" +
+					"# Some alphabets may not be supported by the default font.  If this is the case, you can\n" +
+					"# specify one or more font names here.  Each font name should be separated by a comma.\n" +
+					"# You may need to tweak this on different systems.\n" +
+					"#font.name=Courier New,Arial\n");
+		} finally {
+			if(out != null) out.close();
+			if(osw != null) try { osw.close(); } catch(IOException ex) {}
+			if(fos != null) try { fos.close(); } catch(IOException ex) {}
+		}
+		
+		this.refreshLanguageList();
+		this.selectLanguageFromCode(filename);
+	}
 
 	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode) throws IOException {
 		MasterTranslationFile newLanguageBundle = new MasterTranslationFile(originalLanguageBundle.getFilename(), originalLanguageBundle.getTranslationFiles());
@@ -533,6 +572,20 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// If the Bundle was editing (shouldn't happen), we put the updated version in the map
 		if (this.languageBundles.remove(originalLanguageBundle.getIdentifier()) != null) {
 			this.languageBundles.put(newLanguageBundle.getIdentifier(), newLanguageBundle);
+		}
+		
+		this.refreshLanguageList();
+		this.selectLanguageFromCode(newLanguageBundle.getFilename());
+	}
+
+	private void selectLanguageFromCode(String languageName) {
+		for (Object item : this.ui.getItems(this.getLanguageList())) {
+			String languageIdentifier = this.ui.getAttachedObject(item, String.class);
+			if (languageIdentifier != null && languageIdentifier.equals(MasterTranslationFile.getIdentifier(languageName))) {
+				this.ui.setSelectedItem(this.getLanguageList(), item);
+				this.languageSelectionChanged();
+				return;
+			}
 		}
 	}
 }

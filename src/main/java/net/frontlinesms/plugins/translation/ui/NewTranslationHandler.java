@@ -130,45 +130,14 @@ public class NewTranslationHandler implements ThinletUiEventHandler {
 				
 				// If this is a new language
 				if (this.originalLanguageBundle == null) {
-					createNewLanguageFile(languageName, isoCode, countryCode);
+					this.owner.createNewLanguageFile(languageName, isoCode, countryCode);
 				} else {
 					this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode);
 				}
 				
 				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SAVED, languageName));
 				this.removeDialog();
-				this.owner.refreshLanguageList();
 			}
-		}
-	}
-	
-	private void createNewLanguageFile(String languageName, String isoCode, String countryCode) throws FileNotFoundException {
-		FileOutputStream fos = null;
-		OutputStreamWriter osw = null;
-		PrintWriter out = null;
-		try {
-			File file = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", "frontlineSMS_" + isoCode + ".properties");
-			fos = new FileOutputStream(file);
-			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
-			out = new PrintWriter(osw);
-			out.write("# The 2-letter ISO-? code for the language\n" +
-					"bundle.language=" + isoCode + "\n" +
-					"# The name of the language IN THAT LANGUAGE - this is how the language will be chosen from\n" +
-					"# menus, so it's important that speakers of that language actually understand this.  If the\n" +
-					"# language name is in a non-Latin alphabet, a latinised or English version of the language\n" +
-					"# name should also be provided, as some fonts will not display the non-Latin version\n" +
-					"bundle.language.name=" + languageName + "\n" +
-					"# 2-letter ISO-? code for the country where they speak this language.  This is used to get\n" +
-					"# a flag to represent this language\n" +
-					"bundle.language.country=" + countryCode + "\n" +
-					"# Some alphabets may not be supported by the default font.  If this is the case, you can\n" +
-					"# specify one or more font names here.  Each font name should be separated by a comma.\n" +
-					"# You may need to tweak this on different systems.\n" +
-					"#font.name=Courier New,Arial\n");
-		} finally {
-			if(out != null) out.close();
-			if(osw != null) try { osw.close(); } catch(IOException ex) {}
-			if(fos != null) try { fos.close(); } catch(IOException ex) {}
 		}
 	}
 
