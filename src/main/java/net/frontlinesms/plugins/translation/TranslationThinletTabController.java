@@ -29,9 +29,12 @@ import thinlet.Thinlet;
  */
 public class TranslationThinletTabController extends BasePluginThinletTabController<TranslationPluginController> {
 
+	
 	//> STATIC CONSTANTS
 	/** Filename and path of the XML for the Translation tab. */
 	private final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
+
+	private static final String I18N_TRANSLATION_DELETED = "plugins.translations.translation.file.deleted";
 
 	private final String COMPONENT_LS_LANGUAGES = "lsLanguages";
 
@@ -350,21 +353,31 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	public void editTranslation () {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		if (languageBundle != null) {
-			String languageName = languageBundle.getLanguageName();
-			String countryFlag = languageBundle.getCountry();
-			String languageCode = languageBundle.getLanguageCode();
-			
 			NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
-			
 			handler.populate(languageBundle);
 			handler.initDialog();
+			
 			this.ui.add(handler.getDialog());	
 		}
 	}
 	
 	public void deleteTranslation () {
-		//NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
-		//this.ui.add(handler.getDialog());
+		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
+		this.ui.removeConfirmationDialog();
+		
+		if (languageBundle != null) {
+			// We remove the MasterTranslationFile from the current editing bundles, if it is in
+			languageBundles.remove(languageBundle.getIdentifier());
+			
+			// Then we remove the file
+			if (new File(ResourceUtils.getConfigDirectoryPath() + "/languages/" + languageBundle.getFilename()).delete()) {
+				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_DELETED));
+			}
+			
+			// And we refresh
+			this.refreshLanguageList();
+			this.languageSelectionChanged(); // Nothing selected
+		}
 	}
 	
 	/**

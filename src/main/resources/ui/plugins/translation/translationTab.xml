@@ -9,7 +9,7 @@
 	    		<panel name="pnBigButtons" gap="5" weightx="1">
 	                <button action="createTranslation" icon="/icons/big_translate_add.png" name="newTranslation" text="i18n.plugins.translation.new.translation" weightx="1" weighty="1"/>
 	                <button action="editTranslation" icon="/icons/big_translate_edit.png" name="editTranslation" text="i18n.action.edit" weightx="1" weighty="1" enabled="false"/>
-	                <button action="deleteTranslation" icon="/icons/big_translate_delete.png" name="deleteTranslation" text="i18n.action.delete" weightx="1" weighty="1" enabled="false"/>
+	                <button action="showConfirmationDialog('deleteTranslation')" icon="/icons/big_translate_delete.png" name="deleteTranslation" text="i18n.action.delete" weightx="1" weighty="1" enabled="false"/>
 	            </panel>
 			</panel>
 			<panel gap="8" weightx="1" columns="2">
