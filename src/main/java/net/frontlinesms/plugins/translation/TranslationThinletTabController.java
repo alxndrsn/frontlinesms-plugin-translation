@@ -25,13 +25,15 @@ import thinlet.Thinlet;
  * @author alex
  */
 public class TranslationThinletTabController extends BasePluginThinletTabController<TranslationPluginController> {
-//> STATIC CONSTANTS
+
+	//> STATIC CONSTANTS
 	/** Filename and path of the XML for the Translation tab. */
 	private final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
 
 	private final String COMPONENT_LS_LANGUAGES = "lsLanguages";
 
 	private final String COMPONENT_TRANSLATION_CREATE = "newTranslation";
+	private final String COMPONENT_TRANSLATION_EDIT = "editTranslation";
 
 	private final String COMPONENT_PN_BIG_BUTTONS = "pnBigButtons";
 	
@@ -145,11 +147,25 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @throws IOException
 	 */
 	public void saveText(String textKey, String textValue) {
-		this.getSelectedLanguageBundle().add(textKey, textValue);
+		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
+		languageBundle.add(textKey, textValue);
+		
+		if (!languageBundles.containsKey(languageBundle.getIdentifier())) {
+			languageBundles.put(languageBundle.getIdentifier(), languageBundle);
+		}
 		
 		// Update the table
 		//setSelectedTextValue(this.visibleTab, textValue);
+		
+		int selectedIndex = this.ui.getSelectedIndex(getLanguageList());
+		this.refreshLanguageList();
+		if (selectedIndex >= 0) {
+			this.ui.setSelectedIndex(getLanguageList(), selectedIndex);
+			enableTranslationFields(this.ui.find(COMPONENT_PN_BIG_BUTTONS));
+		}
+		
 		this.refreshTables();
+		
 		removeEditDialog();
 		this.enableSaveButton(true);
 	}
@@ -251,6 +267,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	}
 	
 	private void refreshTables() {
+		this.translationTableRows = new HashMap<TranslationView, List<Object>>();
+		
 		if (getSelectedLanguageBundle() == null) {
 			ArrayList<Object> emptyList = new ArrayList<Object>();
 			this.translationTableRows.put(TranslationView.ALL, emptyList);
@@ -260,8 +278,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			MasterTranslationFile lang = getSelectedLanguageBundle();
 			MasterTranslationFile defaultLang = getDefaultLanguageBundle();
 			Comparator<Object> comparator = new PropertyRowComparator(this.ui);  
-			
-			this.translationTableRows = new HashMap<TranslationView, List<Object>>();
 			
 			// Generate the "all" table rows
 			ArrayList<Object> allRows = new ArrayList<Object>(defaultLang.getProperties().size());
@@ -329,6 +345,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	
 	public void editTranslation () {
 		NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+		
+		//handler.populate()
 		this.ui.add(handler.getDialog());
 	}
 	
@@ -359,12 +377,23 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		} else {
 			//Keyword selected
 			for (Object o : ui.getItems(component)) {
-				ui.setEnabled(o, true);
+				String name = ui.getString(o, Thinlet.NAME);
+				boolean isEnabled =  (!name.equals(COMPONENT_TRANSLATION_EDIT) || !isSelectedItemEditing());
+				ui.setEnabled(o, isEnabled);
 			}
 		}
 		log.trace("EXIT");
 	}
 	
+	private boolean isSelectedItemEditing() {
+		if (this.ui.getSelectedItem(this.getLanguageList()) == null) {
+			return false;
+		}
+		Object languageIdentifier = this.ui.getAttachedObject(this.ui.getSelectedItem(this.getLanguageList()));
+		
+		return languageBundles.containsKey(languageIdentifier);
+	}
+
 	/**
 	 * Creates a Thinlet table row for a translation.  The first column value, i.e. 
 	 * the translation key, is attached, to the row, as well as appearing in the first
@@ -377,7 +406,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		Object row = ui.createTableRow(columnValues[0]);
 		for(int i = 0 ; i < columnValues.length ; ++i) {
 			String col = columnValues[i];
-			ui.add(row, ui.createTableCell(col, (i == 0)));
+			ui.add(row, ui.createTableCell(col));
 		}
 		return row;
 	}
@@ -388,11 +417,15 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// Refresh language list
 		Object languageList = getLanguageList();
 		super.removeAll(languageList);
+		System.err.println(languageBundles);
 		for (MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
-			Object item = ui.createListItem(languageBundle.getLanguageName(), languageBundle.getIdentifier());
+			boolean shouldBeBold = languageBundles.containsKey(languageBundle.getIdentifier());
+			Object item = ui.createListItem(languageBundle.getLanguageName(), languageBundle.getIdentifier(), shouldBeBold);
 			ui.setIcon(item, ui.getFlagIcon(languageBundle));
 			ui.add(languageList, item);
 		}
+		
+		this.enableTranslationFields(find(COMPONENT_PN_BIG_BUTTONS));
 	}
 	
 //> UI ACCESSORS
@@ -404,12 +437,13 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		if (ui.getSelectedItem(getLanguageList()) == null) {
 			return null;
 		}
-		String languageFileIdentifier = ui.getAttachedObject(ui.getSelectedItem(getLanguageList()), String.class);
-		if (!languageBundles.containsKey(languageFileIdentifier)) {
-			languageBundles.put(languageFileIdentifier, MasterTranslationFile.getFromIdentifier(languageFileIdentifier));
-		}
 		
-		return languageBundles.get(languageFileIdentifier);
+		String languageFileIdentifier = ui.getAttachedObject(ui.getSelectedItem(getLanguageList()), String.class);
+		if (languageBundles.containsKey(languageFileIdentifier)) {
+			return languageBundles.get(languageFileIdentifier);
+		} else {
+			return MasterTranslationFile.getFromIdentifier(languageFileIdentifier);
+		}
 	}
 	
 	private MasterTranslationFile getDefaultLanguageBundle() {
