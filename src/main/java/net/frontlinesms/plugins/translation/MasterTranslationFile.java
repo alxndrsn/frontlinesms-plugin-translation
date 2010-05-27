@@ -45,8 +45,11 @@ public class MasterTranslationFile extends LanguageBundle {
 	private static final Logger LOG = Utils.getLogger(MasterTranslationFile.class);
 	
 //> INSTANCE VARIABLES
-	private final String filename;
+	private String filename;
+	
 	private final List<TextFileContent> translationFiles;
+
+
 	private final TextFileContent extraTranslations;
 	
 //> CONSTRUCTORS
@@ -313,6 +316,58 @@ public class MasterTranslationFile extends LanguageBundle {
 		}
 		throw new KeyNotFoundException("The text key could not be found in any of the attached content: " + textKey);
 	}
+	
+	/**
+	 * Gets the translation files for this language bundle
+	 * @return
+	 */
+	public List<TextFileContent> getTranslationFiles() {
+		return translationFiles;
+	}
+
+	/**
+	 * Gets the filename for this language bundle
+	 * @return The filename
+	 */
+	public String getFilename() {
+		return filename;
+	}
+
+	
+	/**
+	 * Sets the filename for this language bundle
+	 * @param fileName
+	 */
+	public void setFilename (String fileName) {
+		this.filename = fileName;
+	}
+
+	/** Sets the ISO-???? country code relating to the language in this bundle 
+	 * @throws KeyNotFoundException */
+	public void setCountry(String country) {
+		super.setCountry(country);
+		try {
+			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_COUNTRY, country);
+		} catch (KeyNotFoundException ex) { }
+	}
+	
+	/** Sets the name of this language bundle */
+	/** @throws KeyNotFoundException */
+	public void setLanguageName(String country) {
+		super.setCountry(country);
+		try {
+			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_NAME, country);
+		} catch (KeyNotFoundException ex) { }
+	}
+
+	/** Sets the ISO-???? code relating to this language */
+	/** @throws KeyNotFoundException */
+	public void setLanguageCode(String country) {
+		super.setCountry(country);
+		try {
+			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_CODE, country);
+		} catch (KeyNotFoundException ex) { }
+	}
 }
 
 class TextFileContent {
@@ -370,7 +425,7 @@ class TextFileContent {
 		}
 		throw new KeyNotFoundException(textKey);
 	}
-
+	
 	/**
 	 * Changes the value for a text key in this file.
 	 * @param textKey
@@ -380,7 +435,7 @@ class TextFileContent {
 	void updateValue(String textKey, String newValue) throws KeyNotFoundException {
 		String oldLine = getLine(textKey);
 		String newLine = textKey + "=" + newValue;
-		this.lines.set(lines.indexOf(oldLine), newLine);	
+		this.lines.set(lines.indexOf(oldLine), newLine);
 	}
 	
 	static TextFileContent getFromMap(String description, Map<String, String> map) {

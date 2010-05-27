@@ -3,6 +3,7 @@
  */
 package net.frontlinesms.plugins.translation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,13 +17,15 @@ import java.util.Map.Entry;
 
 import net.frontlinesms.plugins.BasePluginThinletTabController;
 import net.frontlinesms.plugins.translation.ui.NewTranslationHandler;
+import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
 import net.frontlinesms.ui.i18n.LanguageBundle;
 import thinlet.Thinlet;
 
 /**
- * @author alex
+ * @author Alex Anderson <alex@frontlinesms.com>
+ * @author Morgan Belkadi <morgan@frontlinesms.com>
  */
 public class TranslationThinletTabController extends BasePluginThinletTabController<TranslationPluginController> {
 
@@ -60,7 +63,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	private Map<String, MasterTranslationFile> languageBundles;
 
-//> CONSTRUCTORS
+	//> CONSTRUCTORS
 	protected TranslationThinletTabController(TranslationPluginController pluginController, UiGeneratorController uiController) {
 		super(pluginController, uiController);
 	}
@@ -340,19 +343,28 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	
 	public void createTranslation () {
 		NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+		handler.initDialog();
 		this.ui.add(handler.getDialog());
 	}
 	
 	public void editTranslation () {
-		NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
-		
-		//handler.populate()
-		this.ui.add(handler.getDialog());
+		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
+		if (languageBundle != null) {
+			String languageName = languageBundle.getLanguageName();
+			String countryFlag = languageBundle.getCountry();
+			String languageCode = languageBundle.getLanguageCode();
+			
+			NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+			
+			handler.populate(languageBundle);
+			handler.initDialog();
+			this.ui.add(handler.getDialog());	
+		}
 	}
 	
 	public void deleteTranslation () {
-		NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
-		this.ui.add(handler.getDialog());
+		//NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+		//this.ui.add(handler.getDialog());
 	}
 	
 	/**
@@ -485,6 +497,30 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	public UiGeneratorController getUIGeneratorController() {
 		return this.ui;
+	}
+
+	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode) throws IOException {
+		MasterTranslationFile newLanguageBundle = new MasterTranslationFile(originalLanguageBundle.getFilename(), originalLanguageBundle.getTranslationFiles());
+		
+		newLanguageBundle.setCountry(countryCode);
+		newLanguageBundle.setLanguageName(languageName);
+		newLanguageBundle.setLanguageCode(isoCode);
+		newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
+		
+		if (!isoCode.equals(originalLanguageBundle.getLanguageCode())) {
+			
+			// If the ISO code has changed during the editing, we have to rename the file
+			File oldFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", originalLanguageBundle.getFilename());
+			String newFilename = "frontlineSMS_" + isoCode + ".properties";
+			File newFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", newFilename);
+			newLanguageBundle.setFilename(newFilename);
+			oldFile.renameTo(newFile);
+		}
+		
+		// If the Bundle was editing (shouldn't happen), we put the updated version in the map
+		if (this.languageBundles.remove(originalLanguageBundle.getIdentifier()) != null) {
+			this.languageBundles.put(newLanguageBundle.getIdentifier(), newLanguageBundle);
+		}
 	}
 }
 
