@@ -19,10 +19,14 @@ import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import net.frontlinesms.data.events.EntityDeleteWarning;
+import net.frontlinesms.events.EventObserver;
+import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
 import net.frontlinesms.plugins.translation.ui.NewTranslationHandler;
 import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
+import net.frontlinesms.ui.events.TabChangedNotification;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
 import net.frontlinesms.ui.i18n.LanguageBundle;
 import thinlet.Thinlet;
@@ -31,24 +35,26 @@ import thinlet.Thinlet;
  * @author Alex Anderson <alex@frontlinesms.com>
  * @author Morgan Belkadi <morgan@frontlinesms.com>
  */
-public class TranslationThinletTabController extends BasePluginThinletTabController<TranslationPluginController> {
+public class TranslationThinletTabController extends BasePluginThinletTabController<TranslationPluginController> implements EventObserver {
 
 	
 	//> STATIC CONSTANTS
 	/** Filename and path of the XML for the Translation tab. */
-	private final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
+	private static final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
 
 	private static final String I18N_TRANSLATION_DELETED = "plugins.translations.translation.file.deleted";
+	private static final String I18N_WARNING_TRANSLATIONS_NOT_SAVED = "plugins.translations.translations.not.saved";
 
-	private final String COMPONENT_LS_LANGUAGES = "lsLanguages";
+	private static final String COMPONENT_LS_LANGUAGES = "lsLanguages";
 
-	private final String COMPONENT_TRANSLATION_CREATE = "newTranslation";
-	private final String COMPONENT_TRANSLATION_EDIT = "editTranslation";
+	private static final String COMPONENT_TRANSLATION_CREATE = "newTranslation";
+	private static final String COMPONENT_TRANSLATION_EDIT = "editTranslation";
 
-	private final String COMPONENT_PN_BIG_BUTTONS = "pnBigButtons";
+	private static final String COMPONENT_PN_BIG_BUTTONS = "pnBigButtons";
 	
-	private final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
-	private final String UI_COMPONENT_BT_SAVE = "saveTranslations";
+	private static final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
+	private static final String UI_COMPONENT_BT_SAVE = "saveTranslations";
+	private static final Object UI_TAB_NAME = ":translation";
 
 //> INSTANCE VARIABLES
 	/** Current view in the translations tables tabs */
@@ -76,6 +82,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	}
 
 	public void init() {
+		this.ui.getFrontlineController().getEventBus().registerObserver(this);
+		
 		this.visibleTab = TranslationView.ALL;
 		this.defaultLanguageBundle =  MasterTranslationFile.getDefault();
 		this.languageBundles = new HashMap<String, MasterTranslationFile>();
@@ -167,12 +175,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// Update the table
 		//setSelectedTextValue(this.visibleTab, textValue);
 		
-		int selectedIndex = this.ui.getSelectedIndex(getLanguageList());
-		this.refreshLanguageList();
-		if (selectedIndex >= 0) {
-			this.ui.setSelectedIndex(getLanguageList(), selectedIndex);
-			enableTranslationFields(this.ui.find(COMPONENT_PN_BIG_BUTTONS));
-		}
+		this.refreshLanguagesAndReselect();
 		
 		this.refreshTables();
 		
@@ -180,13 +183,24 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		this.enableSaveButton(true);
 	}
 	
+	private void refreshLanguagesAndReselect() {
+		int selectedIndex = this.ui.getSelectedIndex(getLanguageList());
+		this.refreshLanguageList();
+		if (selectedIndex >= 0) {
+			this.ui.setSelectedIndex(getLanguageList(), selectedIndex);
+			this.languageSelectionChanged();
+		}
+	}
+
 	public void saveTranslations () throws IOException {
 		// save all language bundles to disk
-		for (MasterTranslationFile mtf : languageBundles.values()) {
-			mtf.saveToDisk(InternationalisationUtils.getLanguageDirectory());
+		for (MasterTranslationFile languageBundle : languageBundles.values()) {
+			languageBundle.saveToDisk(InternationalisationUtils.getLanguageDirectory());
 		}
 		
 		this.enableSaveButton(false);
+		this.languageBundles.clear();
+		this.refreshLanguagesAndReselect();
 		this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SAVED));
 		this.ui.setVisible(this.ui.find(UI_COMPONENT_PN_RESTART_FRONTLINE), true);
 	}
@@ -210,7 +224,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		System.out.println("TranslationThinletTabController.filterTranslations(" + filterText + ")");
 		filterTable(TranslationView.ALL);
 		filterTable(TranslationView.MISSING);
-		filterTable(TranslationView.EXTRA);
 	}
 	
 //>
@@ -283,7 +296,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			ArrayList<Object> emptyList = new ArrayList<Object>();
 			this.translationTableRows.put(TranslationView.ALL, emptyList);
 			this.translationTableRows.put(TranslationView.MISSING, emptyList);
-			this.translationTableRows.put(TranslationView.EXTRA, emptyList);
 		} else {
 			MasterTranslationFile lang = getSelectedLanguageBundle();
 			MasterTranslationFile defaultLang = getDefaultLanguageBundle();
@@ -318,22 +330,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			
 			Collections.sort(missingRows, comparator);
 			this.translationTableRows.put(TranslationView.MISSING, missingRows);
-	
-			// populate and enable the extra table
-			Set<String> extraKeys = comp.getKeysIn2Only();
-			ArrayList<Object> extraRows = new ArrayList<Object>(extraKeys.size());
-			for(String key : extraKeys) {
-				Object tableRow = createTableRow(key, "", comp.get2(key));
-				extraRows.add(tableRow);
-			}
-			
-			Collections.sort(extraRows, comparator);
-			this.translationTableRows.put(TranslationView.EXTRA, extraRows);
 		}
 		
 		initTable(TranslationView.ALL);
 		initTable(TranslationView.MISSING);
-		initTable(TranslationView.EXTRA);
 	}
 	
 	private void initTable(TranslationView view) {
@@ -390,7 +390,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	public void enableTranslationFields(Object component) {
 		log.trace("ENTER");
 		int selected = ui.getSelectedIndex(getLanguageList());
-		if (selected <= 0) {
+		if (selected < 0) {
 			log.debug("Nothing selected, so we only allow keyword creation.");
 			for (Object o : ui.getItems(component)) {
 				String name = ui.getString(o, Thinlet.NAME);
@@ -399,7 +399,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 				} else {
 					// "New" button is always enabled
 					// "Edit" button is only enabled if a language different than the default language (English) is selected
-					boolean isEnabled = (name.equals(COMPONENT_TRANSLATION_CREATE) || selected > 0);
+					boolean isEnabled = name.equals(COMPONENT_TRANSLATION_CREATE);
 					ui.setEnabled(o, isEnabled);
 				}
 			}
@@ -588,12 +588,25 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			}
 		}
 	}
+
+	public void notify(FrontlineEventNotification notification) {
+		// Tab has changed
+		if(notification instanceof TabChangedNotification) {
+			String newTabName = ((TabChangedNotification) notification).getNewTabName();
+			if (!newTabName.equals(UI_TAB_NAME)) {
+				// Focus lost
+				if (this.languageBundles.size() > 0) {
+					// Then we're editing some translations, which need to be saved
+					this.ui.alert(InternationalisationUtils.getI18NString(I18N_WARNING_TRANSLATIONS_NOT_SAVED));
+				}
+			}
+		}
+	}
 }
 
 enum TranslationView {
 	ALL("tbAll", 0, "tbAllTranslations"),
-	MISSING("tbMissing", 1, "tbMissingTranslations"),
-	EXTRA("tbExtra", 2, "tbExtraTranslations");
+	MISSING("tbMissing", 1, "tbMissingTranslations");
 	
 	private final String tabName;
 	private final int tabIndex;

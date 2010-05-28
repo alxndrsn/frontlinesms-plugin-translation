@@ -5,11 +5,15 @@
        	<splitpane weighty="1" weightx="1" rowspan="2" orientation="horizontal">
 			<panel gap="8" weightx="2" weighty="2" columns="1">
 	    		<label text="i18n.common.select.language"/>
-	    		<list name="lsLanguages" action="languageSelectionChanged" selection="single" weighty="1" weightx="1" width="200" height="1"/>
+	    		<list name="lsLanguages" perform="editTranslation" action="languageSelectionChanged" selection="single" weighty="1" weightx="1" width="200" height="1">
+	    			<popupmenu name="menu">
+	                    <menuitem font="bold" icon="/icons/translate_edit.png" action="editTranslation" text="Properties"/>
+	                    <separator/>
+	                    <menuitem icon="/icons/translate_delete.png" action="deleteTranslation" text="i18n.action.delete"/>
+	                </popupmenu>
+                </list>
 	    		<panel name="pnBigButtons" gap="5" weightx="1">
 	                <button action="createTranslation" icon="/icons/big_translate_add.png" name="newTranslation" text="i18n.plugins.translation.new.translation" weightx="1" weighty="1"/>
-	                <button action="editTranslation" icon="/icons/big_translate_edit.png" name="editTranslation" text="i18n.action.edit" weightx="1" weighty="1" enabled="false"/>
-	                <button action="showConfirmationDialog('deleteTranslation')" icon="/icons/big_translate_delete.png" name="deleteTranslation" text="i18n.action.delete" weightx="1" weighty="1" enabled="false"/>
 	            </panel>
 			</panel>
 			<panel gap="8" weightx="1" columns="2">
@@ -40,18 +44,9 @@
 							</header>
 						</table>
 					</tab>
-					<tab icon="/icons/translate_add.png" text="i18n.plugins.translation.translations.extra" name="tbExtra">
-						<table selection="multiple" name="tbExtraTranslations" perform="editText">
-							<header>
-								<column text="i18n.plugins.translation.key" width="230"/>
-									<column text="i18n.plugins.translation.default" width="320"/>
-									<column name="clCurrentLanguage"/>
-							</header>
-						</table>
-					</tab>
 				</tabbedpane>
 				<panel gap="8" colspan="2" halign="right">
-					<button text="i18n.action.save" icon="/icons/tick.png" action="saveTranslations" name="saveTranslations" enabled="false"/>
+					<button text="i18n.action.save" icon="/icons/tick.png" action="saveTranslations" name="saveTranslations" font="15 bold" enabled="false"/>
 					<button text="i18n.action.edit" icon="/icons/edit.png" action="editText"/>
 					<button text="i18n.action.delete" icon="/icons/delete.png" action="confirmDeleteText"/>
 				</panel>
