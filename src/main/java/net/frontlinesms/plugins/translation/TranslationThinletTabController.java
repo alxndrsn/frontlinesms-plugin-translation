@@ -19,11 +19,10 @@ import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import net.frontlinesms.data.events.EntityDeleteWarning;
 import net.frontlinesms.events.EventObserver;
 import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
-import net.frontlinesms.plugins.translation.ui.NewTranslationHandler;
+import net.frontlinesms.plugins.translation.ui.TranslationPropertiesHandler;
 import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.events.TabChangedNotification;
@@ -46,15 +45,15 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	private static final String I18N_WARNING_TRANSLATIONS_NOT_SAVED = "plugins.translations.translations.not.saved";
 
 	private static final String COMPONENT_LS_LANGUAGES = "lsLanguages";
-
-	private static final String COMPONENT_TRANSLATION_CREATE = "newTranslation";
-	private static final String COMPONENT_TRANSLATION_EDIT = "editTranslation";
-
-	private static final String COMPONENT_PN_BIG_BUTTONS = "pnBigButtons";
 	
-	private static final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
+	private static final String UI_COMPONENT_BT_DELETE = "btDelete";
+	private static final String UI_COMPONENT_BT_EDIT = "btEdit";
 	private static final String UI_COMPONENT_BT_SAVE = "saveTranslations";
+	private static final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
 	private static final Object UI_TAB_NAME = ":translation";
+
+	
+	
 
 //> INSTANCE VARIABLES
 	/** Current view in the translations tables tabs */
@@ -140,31 +139,24 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 */
 	public void deleteText(String textKey) throws IOException {
 		MasterTranslationFile lang = this.getSelectedLanguageBundle();
-		lang.delete(textKey);
+		try {
+			lang.delete(textKey);
+		} catch (KeyNotFoundException e) {
+			throw new IllegalStateException("Could not delete text with key '" + textKey + "' because it does not exist.");
+		}
 		refreshTables();
 		this.enableSaveButton(true);
-		
-		// save language bundle to disk
-		//lang.saveToDisk(InternationalisationUtils.getLanguageDirectory());
-		/*
-		// Remove the deleted item from view and from the 
-		Object selectedTableItem = getSelectedTableItem(this.visibleTab);
-		ui.remove(selectedTableItem);
-		for(List<Object> tableRows : this.translationTableRows.values()) {
-			tableRows.remove(selectedTableItem);
-		}
-*/
+
 		ui.removeConfirmationDialog();
 	}
 	
 	/**
-	 * Method called when a translation has been added or saved.  The translation is added to the relevant
-	 * file, and the file is then saved.
+	 * Method called when a translation has been added.
 	 * @param textKey
 	 * @param textValue
 	 * @throws IOException
 	 */
-	public void saveText(String textKey, String textValue) {
+	public void propertyEdited(String textKey, String textValue) {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		languageBundle.add(textKey, textValue);
 		
@@ -216,10 +208,25 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	
 	public void languageSelectionChanged() {
 		System.out.println("TranslationThinletTabController.languageSelectionChanged()");
-		refreshTables();
-		enableTranslationFields(this.ui.find(COMPONENT_PN_BIG_BUTTONS));
+		this.refreshTables();
+		this.enableBottomButtons();
 		ui.setEnabled(getFilterTextfield(), true);
 	}
+	
+	public  void enableBottomButtons() {
+		Object btEdit = find(UI_COMPONENT_BT_EDIT);
+		Object btDelete = find(UI_COMPONENT_BT_DELETE);
+		boolean shouldEnable = (this.visibleTab != null && this.ui.getSelectedIndex(find(this.visibleTab.getTableName())) >= 0);
+		this.ui.setEnabled(btEdit, shouldEnable);
+		
+		if (shouldEnable) {
+			String propertyKey = this.ui.getAttachedObject(this.ui.getSelectedItem(find(this.visibleTab.getTableName())), String.class);
+			shouldEnable = this.getSelectedLanguageBundle().getProperties().containsKey(propertyKey);
+		}
+		
+		this.ui.setEnabled(btDelete, shouldEnable);
+	}
+
 	public void filterTranslations(String filterText) {
 		System.out.println("TranslationThinletTabController.filterTranslations(" + filterText + ")");
 		filterTable(TranslationView.ALL);
@@ -349,7 +356,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	}
 	
 	public void createTranslation () {
-		NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+		TranslationPropertiesHandler handler = new TranslationPropertiesHandler(this.ui, this);
 		handler.initDialog();
 		this.ui.add(handler.getDialog());
 	}
@@ -357,7 +364,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	public void editTranslation () {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		if (languageBundle != null) {
-			NewTranslationHandler handler = new NewTranslationHandler(this.ui, this);
+			TranslationPropertiesHandler handler = new TranslationPropertiesHandler(this.ui, this);
 			handler.populate(languageBundle);
 			handler.initDialog();
 			
@@ -382,36 +389,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			this.refreshLanguageList();
 			this.languageSelectionChanged(); // Nothing selected
 		}
-	}
-	
-	/**
-	 * Enables or disables New/Edit/Delete translation buttons
-	 */
-	public void enableTranslationFields(Object component) {
-		log.trace("ENTER");
-		int selected = ui.getSelectedIndex(getLanguageList());
-		if (selected < 0) {
-			log.debug("Nothing selected, so we only allow keyword creation.");
-			for (Object o : ui.getItems(component)) {
-				String name = ui.getString(o, Thinlet.NAME);
-				if (name == null) {
-					continue;
-				} else {
-					// "New" button is always enabled
-					// "Edit" button is only enabled if a language different than the default language (English) is selected
-					boolean isEnabled = name.equals(COMPONENT_TRANSLATION_CREATE);
-					ui.setEnabled(o, isEnabled);
-				}
-			}
-		} else {
-			//Keyword selected
-			for (Object o : ui.getItems(component)) {
-				String name = ui.getString(o, Thinlet.NAME);
-				boolean isEnabled =  (!name.equals(COMPONENT_TRANSLATION_EDIT) || !isSelectedItemEditing());
-				ui.setEnabled(o, isEnabled);
-			}
-		}
-		log.trace("EXIT");
 	}
 	
 	private boolean isSelectedItemEditing() {
@@ -446,15 +423,13 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// Refresh language list
 		Object languageList = getLanguageList();
 		super.removeAll(languageList);
-		System.err.println(languageBundles);
+		
 		for (MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
 			boolean shouldBeBold = languageBundles.containsKey(languageBundle.getIdentifier());
 			Object item = ui.createListItem(languageBundle.getLanguageName(), languageBundle.getIdentifier(), shouldBeBold);
 			ui.setIcon(item, ui.getFlagIcon(languageBundle));
 			ui.add(languageList, item);
 		}
-		
-		this.enableTranslationFields(find(COMPONENT_PN_BIG_BUTTONS));
 	}
 	
 //> UI ACCESSORS

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dialog closable="true" close="removeDialog" icon="/icons/translate_edit.png" bottom="4" columns="2" gap="8" left="4" modal="true" name="languageSelectionDialog" right="4" text="i18n.plugins.translation.tab.name" top="4">
-	<panel bottom="10" columns="2" gap="10" left="10" right="10" top="10">
+	<panel bottom="10" columns="2" gap="5" left="10" right="10" top="10">
 	        <label name="lbTypeLanguage" icon="/icons/language.png" text="i18n.plugins.translation.type.language"/>
 	        <textfield action="fieldChanged(this.text, tfISOCode.text)" name="tfLanguageName"/>
-	    	<label name="lbTypeLanguage" colspan="2" font="11" text="i18n.plugins.translation.english.too"/>
-	        <label text="i18n.plugins.translations.pick.flag" icon="/icons/flags/gb.png"/>
+	        <panel colspan="2" gap="20">
+	    		<label name="lbTypeLanguage" font="11" text="i18n.plugins.translation.english.too"/>
+	    	</panel>
+	    	<label text="i18n.plugins.translations.pick.flag" icon="/icons/flags/gb.png"/>
 	    	<combobox action="fieldChanged(tfLanguageName.text, tfISOCode.text)" editable="false" name="cbCountries">
 	    		<!-- This is automatically populated in the New Translation Handler -->
 			</combobox>

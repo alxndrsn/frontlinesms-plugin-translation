@@ -19,22 +19,15 @@
  */
 package net.frontlinesms.plugins.translation.ui;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 
 import net.frontlinesms.FrontlineSMSConstants;
 import net.frontlinesms.plugins.translation.MasterTranslationFile;
 import net.frontlinesms.plugins.translation.TranslationThinletTabController;
-import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.EnumCountry;
 import net.frontlinesms.ui.ThinletUiEventHandler;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
-import net.frontlinesms.ui.i18n.LanguageBundle;
 import net.frontlinesms.ui.i18n.TextResourceKeyOwner;
 
 /**
@@ -43,11 +36,11 @@ import net.frontlinesms.ui.i18n.TextResourceKeyOwner;
  * @author Morgan Belkadi <morgan@frontlinesms.com>
  */
 @TextResourceKeyOwner(prefix={"MESSAGE_", "I18N"})
-public class NewTranslationHandler implements ThinletUiEventHandler {
+public class TranslationPropertiesHandler implements ThinletUiEventHandler {
 	
 //> UI LAYOUT FILE PATHS
 	/** [ui layout file path] The language selection page */
-	private static final String UI_FILE_NEW_TRANSLATION = "/ui/plugins/translation/dgAddTranslation.xml";
+	private static final String UI_FILE_NEW_TRANSLATION = "/ui/plugins/translation/dgTranslationProperties.xml";
 
 	private static final String I18N_BAD_ISO_CODE = "plugins.translation.bad.iso.code";
 	private static final String I18N_LANGUAGE_ALREADY_TRANSLATED = "plugins.translation.language.already.translated";
@@ -59,8 +52,6 @@ public class NewTranslationHandler implements ThinletUiEventHandler {
 	private static final String COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
 	private static final String COMPONENT_TF_ISO_CODE = "tfISOCode";
 
-
-		
 //> INSTANCE VARIABLES
 	private Object dialogComponent;
 	private UiGeneratorController ui;
@@ -75,7 +66,7 @@ public class NewTranslationHandler implements ThinletUiEventHandler {
 	 * New Translation Handler
 	 * @param frontline 
 	 */
-	public NewTranslationHandler(UiGeneratorController ui, TranslationThinletTabController translationThinletTabController) {
+	public TranslationPropertiesHandler(UiGeneratorController ui, TranslationThinletTabController translationThinletTabController) {
 		this.ui = ui;
 		this.owner = translationThinletTabController;
 		this.dialogComponent = this.ui.loadComponentFromFile(UI_FILE_NEW_TRANSLATION, this);

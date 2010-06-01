@@ -26,7 +26,7 @@
 				<tabbedpane action="tabChanged(this.selected)" name="tpTranslations" weightx="1" weighty="1" colspan="2">
 					<tab icon="/icons/translate.png" text="i18n.plugins.translation.translations.all" name="tbAll">
 						<panel gap="8" columns="1" weightx="1" weighty="1">
-							<table selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText">
+							<table action="enableBottomButtons" selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText" enter="editText">
 								<header>
 									<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>
@@ -36,7 +36,7 @@
 						</panel>
 					</tab>
 					<tab icon="/icons/translate_delete.png" text="i18n.plugins.translation.translations.missing" name="tbMissing">
-						<table selection="multiple" name="tbMissingTranslations" perform="editText">
+						<table action="enableBottomButtons" selection="multiple" name="tbMissingTranslations" perform="editText" enter="editText">
 							<header>
 								<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>
@@ -46,9 +46,9 @@
 					</tab>
 				</tabbedpane>
 				<panel gap="8" colspan="2" halign="right">
-					<button text="i18n.action.save" icon="/icons/tick.png" action="saveTranslations" name="saveTranslations" font="15 bold" enabled="false"/>
-					<button text="i18n.action.edit" icon="/icons/edit.png" action="editText"/>
-					<button text="i18n.action.delete" icon="/icons/delete.png" action="confirmDeleteText"/>
+					<button text="i18n.action.save" icon="/icons/tick.png" action="saveTranslations" name="saveTranslations" enabled="false"/>
+					<button text="i18n.action.edit" icon="/icons/edit.png" action="editText" name="btEdit"/>
+					<button text="i18n.action.delete" icon="/icons/delete.png" action="confirmDeleteText" name="btDelete"/>
 				</panel>
 			</panel>
 		</splitpane>

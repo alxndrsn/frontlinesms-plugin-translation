@@ -271,7 +271,11 @@ public class MasterTranslationFile extends LanguageBundle {
 
 	public void add(String textKey, String textValue) {
 		if (textValue.equals("")) {
-			this.delete(textKey);
+			try {
+				this.delete(textKey);
+			} catch (KeyNotFoundException e) {
+				// oh no, it was never saved :(
+			}
 		} else {
 			super.getProperties().put(textKey, textValue);
 			try {
@@ -296,15 +300,11 @@ public class MasterTranslationFile extends LanguageBundle {
 		tfc.updateValue(textKey, textValue);
 	}
 
-	public void delete(String textKey) {
-		try {
+	public void delete(String textKey) throws KeyNotFoundException {
 			TextFileContent tfc = getTextFileContent(textKey);
 			String line = tfc.getLine(textKey);
 			tfc.removeLine(line);
 			super.getProperties().remove(textKey);
-		} catch (KeyNotFoundException e) {
-			throw new IllegalStateException("Could not delete text with key '" + textKey + "' because it does not exist.");
-		}
 	}
 	
 	/**
