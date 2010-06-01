@@ -51,14 +51,18 @@ public class MasterTranslationFile extends LanguageBundle {
 
 
 	private final TextFileContent extraTranslations;
+
+	private ArrayList<String> changes;
 	
-//> CONSTRUCTORS
+
+	//> CONSTRUCTORS
 	public MasterTranslationFile(String filename, List<TextFileContent> translationFiles) {
 		super(getTranslationMap(translationFiles));
 		this.filename = filename;
 		this.translationFiles = translationFiles;
 		this.extraTranslations = TextFileContent.createEmpty();
 		this.translationFiles.add(this.extraTranslations);
+		this.changes = new ArrayList<String>();
 	}
 	
 //> ACCESSORS
@@ -82,21 +86,21 @@ public class MasterTranslationFile extends LanguageBundle {
 			out = new PrintWriter(osw);
 			for(TextFileContent translationFile : this.translationFiles) {
 				String description = translationFile.getDescription();
-				if(description != null) {
-					// Write the header
-					out.write("###");
-					out.write("### " + description + "###\n");
-				}
+//				if(description != null) {
+//					// Write the header
+//					out.write("###");
+//					out.write("### " + description + "###\n");
+//				}
 				// Write the translations
 				for(String line : translationFile.getLines()) {
 					out.write(line + "\n");
 				}
 				
 				// Write the footer
-				if(description != null) {
-					out.write("### /" + description + "###\n");
-				}
-				
+//				if(description != null) {
+//					out.write("### /" + description + "###\n");
+//				}
+//				
 				out.write("\n");
 			}
 			out.write("\n");
@@ -273,20 +277,28 @@ public class MasterTranslationFile extends LanguageBundle {
 		if (textValue.equals("")) {
 			try {
 				this.delete(textKey);
+				this.valueChanged(textKey);
 			} catch (KeyNotFoundException e) {
-				// oh no, it was never saved :(
+				// Key didn't exist
 			}
 		} else {
-			super.getProperties().put(textKey, textValue);
+			String oldValue = super.getProperties().get(textKey);
+			if (super.getProperties().put(textKey, textValue) == null || !textValue.equals(oldValue)) {
+				this.valueChanged(textKey);
+			}
 			try {
 				// Attempt to update the translation in the current files
 				updateTranslation(textKey, textValue);
 			} catch(KeyNotFoundException ex) {
 				// Add to the extra translations
 				this.extraTranslations.addLine(textKey + "=" + textValue);
-			}			
+			}
 		}
 		
+	}
+
+	private void valueChanged(String textKey) {
+		this.changes.add(textKey);
 	}
 
 	/**
@@ -304,6 +316,7 @@ public class MasterTranslationFile extends LanguageBundle {
 			TextFileContent tfc = getTextFileContent(textKey);
 			String line = tfc.getLine(textKey);
 			tfc.removeLine(line);
+			this.valueChanged(textKey);
 			super.getProperties().remove(textKey);
 	}
 	
@@ -372,6 +385,18 @@ public class MasterTranslationFile extends LanguageBundle {
 		try {
 			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_CODE, country);
 		} catch (KeyNotFoundException ex) { }
+	}
+	
+	public ArrayList<String> getChanges() {
+		return changes;
+	}
+
+	public void setChanges(ArrayList<String> changes) {
+		this.changes = changes;
+	}
+
+	public boolean hasBeenEdited(String textKey) {
+		return this.changes.contains(textKey);
 	}
 }
 

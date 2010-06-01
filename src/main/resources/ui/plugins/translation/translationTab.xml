@@ -26,7 +26,7 @@
 				<tabbedpane action="tabChanged(this.selected)" name="tpTranslations" weightx="1" weighty="1" colspan="2">
 					<tab icon="/icons/translate.png" text="i18n.plugins.translation.translations.all" name="tbAll">
 						<panel gap="8" columns="1" weightx="1" weighty="1">
-							<table action="enableBottomButtons" selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText" enter="editText">
+							<table action="propertyItemChanged" selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText" enter="editText">
 								<header>
 									<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>
@@ -36,7 +36,7 @@
 						</panel>
 					</tab>
 					<tab icon="/icons/translate_delete.png" text="i18n.plugins.translation.translations.missing" name="tbMissing">
-						<table action="enableBottomButtons" selection="multiple" name="tbMissingTranslations" perform="editText" enter="editText">
+						<table action="propertyItemChanged" selection="multiple" name="tbMissingTranslations" perform="editText" enter="editText">
 							<header>
 								<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>

@@ -21,7 +21,6 @@ package net.frontlinesms.plugins.translation.ui;
 
 import java.io.IOException;
 
-import net.frontlinesms.FrontlineSMSConstants;
 import net.frontlinesms.plugins.translation.MasterTranslationFile;
 import net.frontlinesms.plugins.translation.TranslationThinletTabController;
 import net.frontlinesms.ui.EnumCountry;
@@ -36,21 +35,22 @@ import net.frontlinesms.ui.i18n.TextResourceKeyOwner;
  * @author Morgan Belkadi <morgan@frontlinesms.com>
  */
 @TextResourceKeyOwner(prefix={"MESSAGE_", "I18N"})
-public class TranslationPropertiesHandler implements ThinletUiEventHandler {
+public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	
 //> UI LAYOUT FILE PATHS
 	/** [ui layout file path] The language selection page */
-	private static final String UI_FILE_NEW_TRANSLATION = "/ui/plugins/translation/dgTranslationProperties.xml";
+	private static final String UI_FILE_NEW_TRANSLATION = "/ui/plugins/translation/dgLanguageProperties.xml";
 
 	private static final String I18N_BAD_ISO_CODE = "plugins.translation.bad.iso.code";
 	private static final String I18N_LANGUAGE_ALREADY_TRANSLATED = "plugins.translation.language.already.translated";
-	private static final String I18N_TRANSLATION_SAVED = "plugins.translation.translation.file.saved";
+	private static final String I18N_CONFIRM_SAVE_ALL = "plugins.translation.warning.save.all";
 
 //> UI COMPONENT NAMES
 	private static final String COMPONENT_BT_SAVE = "btSave";
 	private static final String COMPONENT_COMBOBOX_COUNTRIES = "cbCountries";
 	private static final String COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
 	private static final String COMPONENT_TF_ISO_CODE = "tfISOCode";
+
 
 //> INSTANCE VARIABLES
 	private Object dialogComponent;
@@ -66,7 +66,7 @@ public class TranslationPropertiesHandler implements ThinletUiEventHandler {
 	 * New Translation Handler
 	 * @param frontline 
 	 */
-	public TranslationPropertiesHandler(UiGeneratorController ui, TranslationThinletTabController translationThinletTabController) {
+	public LanguagePropertiesHandler(UiGeneratorController ui, TranslationThinletTabController translationThinletTabController) {
 		this.ui = ui;
 		this.owner = translationThinletTabController;
 		this.dialogComponent = this.ui.loadComponentFromFile(UI_FILE_NEW_TRANSLATION, this);
@@ -106,30 +106,44 @@ public class TranslationPropertiesHandler implements ThinletUiEventHandler {
 //> UI METHODS
 	
 	/**
-	 * Create the new translation
+	 * Prepares the new translation
 	 * @param list
 	 * @throws IOException 
 	 */
-	public void save(String languageName, String isoCode) throws IOException {
+	public void saveProperties(String languageName, String isoCode) throws IOException {
 		if (this.isAllOkForNewTranslation(languageName, isoCode)) {
-			if (isoCode.length() != FrontlineSMSConstants.ISO_639_1_CODE_LENGTH) {
-				this.ui.alert(InternationalisationUtils.getI18NString(I18N_BAD_ISO_CODE, FrontlineSMSConstants.ISO_639_1_CODE_LENGTH));
-			} else if (isLanguageTranslated(isoCode)) {
+//			if (isoCode.length() != FrontlineSMSConstants.ISO_639_1_CODE_LENGTH) {
+//				this.ui.alert(InternationalisationUtils.getI18NString(I18N_BAD_ISO_CODE, FrontlineSMSConstants.ISO_639_1_CODE_LENGTH));
+//			} else
+			if (isLanguageTranslated(isoCode)) {
 				this.ui.alert(InternationalisationUtils.getI18NString(I18N_LANGUAGE_ALREADY_TRANSLATED));
 			} else {
-				String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(COMPONENT_COMBOBOX_COUNTRIES))).toString();
-				
-				// If this is a new language
 				if (this.originalLanguageBundle == null) {
-					this.owner.createNewLanguageFile(languageName, isoCode, countryCode);
+					this.doSaveProperties(languageName, isoCode);
 				} else {
-					this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode);
+					this.ui.showConfirmationDialog("doSaveProperties('" + languageName + "', '" + isoCode + "')", this, I18N_CONFIRM_SAVE_ALL);
 				}
-				
-				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SAVED, languageName));
-				this.removeDialog();
 			}
 		}
+	}
+	
+	/**
+	 * Creates the new translation
+	 * @param list
+	 * @throws IOException 
+	 */
+	public void doSaveProperties(String languageName, String isoCode) throws IOException {
+		this.ui.removeConfirmationDialog();
+		
+		String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(COMPONENT_COMBOBOX_COUNTRIES))).toString();
+		
+		// If this is a new language
+		if (this.originalLanguageBundle == null) {
+			this.owner.createNewLanguageFile(languageName, isoCode, countryCode);
+		} else {
+			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode);
+		}
+		this.removeDialog();
 	}
 
 	/**
@@ -171,10 +185,10 @@ public class TranslationPropertiesHandler implements ThinletUiEventHandler {
 	}
 	
 	public void fieldChanged (String languageName, String isoCode) {
-		if (isoCode != null && isoCode.length() > 2) {
-			isoCode = isoCode.trim().substring(0, 2).toLowerCase();
-			this.ui.setText(find(COMPONENT_TF_ISO_CODE), isoCode);
-		}
+//		if (isoCode != null && isoCode.length() > FrontlineSMSConstants.ISO_639_1_CODE_LENGTH) {
+//			isoCode = isoCode.trim().substring(0, FrontlineSMSConstants.ISO_639_1_CODE_LENGTH).toLowerCase();
+//			this.ui.setText(find(COMPONENT_TF_ISO_CODE), isoCode);
+//		}
 		boolean enableDoneField = this.isAllOkForNewTranslation(languageName, isoCode);
 		
 		this.ui.setEnabled(find(COMPONENT_BT_SAVE), enableDoneField);
