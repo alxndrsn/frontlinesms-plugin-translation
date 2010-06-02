@@ -47,7 +47,7 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 
 //> UI COMPONENT NAMES
 	private static final String UI_COMPONENT_BT_SAVE = "btSave";
-	private static final String UI_COMPONENT_COMBOBOX_BASE_LANGUAGE = "cbBaseLanguage";
+	private static final String UI_COMPONENT_CHECKBOX_BASE_LANGUAGE = "cbBaseLanguage";
 	private static final String UI_COMPONENT_COMBOBOX_COUNTRIES = "cbCountries";
 	private static final String UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES = "cbKnownLanguages";
 	private static final String UI_COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
@@ -76,11 +76,14 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		return this.dialogComponent;
 	}
 	
+	/**
+	 * Initializes the dialog
+	 */
 	public void initDialog() {
 		this.populateCountryFlags();
 		this.populateKnownLanguages();
 		
-		this.ui.setVisible(find(UI_COMPONENT_COMBOBOX_BASE_LANGUAGE), this.originalLanguageBundle == null);
+		this.ui.setVisible(find(UI_COMPONENT_CHECKBOX_BASE_LANGUAGE), this.originalLanguageBundle == null);
 		this.ui.setVisible(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES), this.originalLanguageBundle == null);
 	}
 
@@ -89,11 +92,18 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		this.ui.removeDialog(dialogComponent);
 	}
 	
-	
+	/**
+	 * Open the browser to display a web page
+	 * @param url
+	 */
 	public void openBrowser(String url) {
 		this.ui.openBrowser(url);
 	}
 	
+	/**
+	 * Populate the dialog with the properties of a language bundle
+	 * @param languageBundle The selected bundle being edited
+	 */
 	public void populate(MasterTranslationFile languageBundle) {
 		Object tfLanguageName = find(UI_COMPONENT_TF_LANGUAGE_NAME);
 		Object tfIsoCode = find(UI_COMPONENT_TF_ISO_CODE);
@@ -117,9 +127,9 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 				this.ui.alert(InternationalisationUtils.getI18NString(I18N_LANGUAGE_ALREADY_TRANSLATED));
 			} else {
 				if (this.originalLanguageBundle == null) {
-					this.doSaveProperties(languageName, isoCode);
+					this.doSaveProperties();
 				} else {
-					this.ui.showConfirmationDialog("doSaveProperties('" + languageName + "', '" + isoCode + "')", this, I18N_CONFIRM_SAVE_ALL);
+					this.ui.showConfirmationDialog("doSaveProperties", this, I18N_CONFIRM_SAVE_ALL);
 				}
 			}
 		}
@@ -130,14 +140,16 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 * @param list
 	 * @throws IOException 
 	 */
-	public void doSaveProperties(String languageName, String isoCode) throws IOException {
+	public void doSaveProperties() throws IOException {
 		this.ui.removeConfirmationDialog();
 		
+		String languageName = this.ui.getText(find(UI_COMPONENT_TF_LANGUAGE_NAME));
+		String isoCode = this.ui.getText(find(UI_COMPONENT_TF_ISO_CODE));
 		String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_COUNTRIES))).toString();
 		
 		// If this is a new language
 		if (this.originalLanguageBundle == null) {
-			if (this.ui.isSelected(find(UI_COMPONENT_COMBOBOX_BASE_LANGUAGE))) {
+			if (this.ui.isSelected(find(UI_COMPONENT_CHECKBOX_BASE_LANGUAGE))) {
 				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES)));
 			} else {
 				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, null);
@@ -186,7 +198,9 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		this.ui.setSelectedIndex(countryList, selectedIndex);
 	}
 	
-
+	/**
+	 * Fill the Combobox displaying potentials base languages
+	 */
 	private void populateKnownLanguages() {
 		Object knownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
 		
@@ -197,12 +211,23 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		}
 	}
 	
+	/**
+	 * UI event triggered when either the language name field or the ISO code field text changed
+	 * @param languageName The content of the Language Name Field
+	 * @param isoCode The content of the ISO Code Field
+	 */
 	public void fieldChanged (String languageName, String isoCode) {
 		boolean enableDoneField = this.isAllOkForNewTranslation(languageName, isoCode);
 		
 		this.ui.setEnabled(find(UI_COMPONENT_BT_SAVE), enableDoneField);
 	}
 
+	/**
+	 * Checks whether the filled component are enough to let the user save the properties
+	 * @param languageName The content of the Language Name Field
+	 * @param isoCode The content of the ISO Code Field
+	 * @return
+	 */
 	private boolean isAllOkForNewTranslation(String languageName, String isoCode) {
 		return (languageName != null 
 				&& isoCode != null
@@ -212,6 +237,10 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 				&& this.ui.getSelectedIndex(find(UI_COMPONENT_COMBOBOX_COUNTRIES)) >= 0);
 	}
 	
+	/**
+	 * UI Event triggered when the user checks or unchecks the "Base language" checkbox
+	 * @param isSelected <code>true</code> if the Checkbox is checked, <code>false</code> otherwise
+	 */
 	public void checkboxBaseChanged(boolean isSelected) {
 		Object knownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
 		this.ui.setEnabled(knownLanguages, isSelected);

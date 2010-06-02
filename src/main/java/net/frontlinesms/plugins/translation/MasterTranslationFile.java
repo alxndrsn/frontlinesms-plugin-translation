@@ -34,7 +34,8 @@ import net.frontlinesms.ui.i18n.*;
 
 /**
  * This creates a master translation file, containing translation for FrontlineSMS core and all available plugins.
- * @author Alex alex@frontlinesms.com
+ * @author Alex <alex@frontlinesms.com>
+ * @author Morgan <morgan@frontlinesms.com>
  */
 public class MasterTranslationFile extends LanguageBundle {
 //> STATIC CONSTANTS
@@ -48,7 +49,6 @@ public class MasterTranslationFile extends LanguageBundle {
 	private String filename;
 	
 	private final List<TextFileContent> translationFiles;
-
 
 	private final TextFileContent extraTranslations;
 
@@ -85,25 +85,11 @@ public class MasterTranslationFile extends LanguageBundle {
 			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
 			out = new PrintWriter(osw);
 			for(TextFileContent translationFile : this.translationFiles) {
-				String description = translationFile.getDescription();
-//				if(description != null) {
-//					// Write the header
-//					out.write("###");
-//					out.write("### " + description + "###\n");
-//				}
-				// Write the translations
 				for(String line : translationFile.getLines()) {
 					out.write(line + "\n");
-				}
-				
-				// Write the footer
-//				if(description != null) {
-//					out.write("### /" + description + "###\n");
-//				}
-//				
+				}	
 				out.write("\n");
 			}
-			out.write("\n");
 		} finally {
 			if(out != null) out.close();
 			if(osw != null) try { osw.close(); } catch(IOException ex) {}
@@ -326,11 +312,11 @@ public class MasterTranslationFile extends LanguageBundle {
 	}
 
 	public void delete(String textKey) throws KeyNotFoundException {
-			TextFileContent tfc = getTextFileContent(textKey);
-			String line = tfc.getLine(textKey);
-			tfc.removeLine(line);
-			this.valueChanged(textKey);
-			super.getProperties().remove(textKey);
+		TextFileContent tfc = getTextFileContent(textKey);
+		String line = tfc.getLine(textKey);
+		tfc.removeLine(line);
+		this.valueChanged(textKey);
+		super.getProperties().remove(textKey);
 	}
 	
 	/**
@@ -414,6 +400,8 @@ public class MasterTranslationFile extends LanguageBundle {
 }
 
 class TextFileContent {
+	/** Prefix for plugins properties */
+	private static final String I18N_PLUGINS_PREFIX = "plugins.";
 	/** Description of this file */
 	private String description;
 	/** Lines in the file */
@@ -440,9 +428,6 @@ class TextFileContent {
 	}
 	
 	void addLine(String line) {
-		if (line.contains("Core")) {
-			int i = 0;
-		}
 		this.lines.add(line);
 	}
 	
@@ -496,7 +481,9 @@ class TextFileContent {
 			in = new BufferedReader(new InputStreamReader(is, InternationalisationUtils.CHARSET_UTF8));
 			String line;
 			while((line = in.readLine()) != null) {
-				content.addLine(line);
+				if (!line.startsWith(I18N_PLUGINS_PREFIX)) {
+					content.addLine(line);
+				}
 			}
 			return content;
 		} catch (IOException ex) {
@@ -508,6 +495,11 @@ class TextFileContent {
 }
 
 class KeyNotFoundException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4988194381702067732L;
+
 	public KeyNotFoundException(String key) {
 		super("Key not found: " + key);
 	}

@@ -4,7 +4,6 @@
 package net.frontlinesms.plugins.translation;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -19,8 +18,6 @@ import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.h2.util.FileUtils;
-
 import net.frontlinesms.events.EventObserver;
 import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
@@ -29,7 +26,6 @@ import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.events.TabChangedNotification;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
-import net.frontlinesms.ui.i18n.LanguageBundle;
 import thinlet.Thinlet;
 
 /**
@@ -45,14 +41,17 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	private static final String I18N_TRANSLATION_DELETED = "plugins.translation.translation.file.deleted";
 	private static final String I18N_CONFIRM_RESTART = "plugins.translation.confirm.restart";
+	private static final String I18N_TRANSLATION_SAVED = "plugins.translation.translations.saved";
 	private static final String I18N_WARNING_TRANSLATIONS_NOT_SAVED = "plugins.translation.warning.translations.not.saved";
-
-	private static final String COMPONENT_LS_LANGUAGES = "lsLanguages";
 	
 	private static final String UI_COMPONENT_BT_DELETE = "btDelete";
 	private static final String UI_COMPONENT_BT_EDIT = "btEdit";
 	private static final String UI_COMPONENT_BT_SAVE = "saveTranslations";
+	private static final String UI_COMPONENT_CL_CURRENT_LANGUAGE = "clCurrentLanguage";
+	private static final String UI_COMPONENT_LS_LANGUAGES = "lsLanguages";
 	private static final String UI_COMPONENT_PN_RESTART_FRONTLINE = "restartFrontline";
+	private static final String UI_COMPONENT_TF_TRANSLATION_FILTER = "tfTranslationFilter";
+	
 	private static final Object UI_TRANSLATION_TAB_NAME = ":translation";
 
 	private boolean shouldWarnWhenLostFocus = false;
@@ -70,14 +69,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	private Object editDialog;
 	/** The localized language file which we are currently editing/working on. */
 	MasterTranslationFile selectedLanguageFile;
-
-	/** The default {@link MasterTranslationFile}.  This is cached here to prevent it being reloaded regularly. */
-	private MasterTranslationFile defaultLanguageBundle;
-
-	private final String I18N_TRANSLATION_SAVED = "plugins.translation.translations.saved";
-
+	/** The localized languages file which we are currently editing/working on. */
 	private Map<String, MasterTranslationFile> languageBundles;
-
+	/** The selected property in the current table. */
 	private String selectedProperty;
 
 	//> CONSTRUCTORS
@@ -87,10 +81,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	public void init() {
 		this.ui.getFrontlineController().getEventBus().registerObserver(this);
-		
 		this.visibleTab = TranslationView.ALL;
-		this.defaultLanguageBundle =  MasterTranslationFile.getDefault();
 		this.languageBundles = new HashMap<String, MasterTranslationFile>();
+		
 		refreshLanguageList();
 	}
 
@@ -105,7 +98,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		System.out.println("TranslationThinletTabController.editText()");
 		String textKey = getSelectedTextKey(this.visibleTab);
 		String defaultValue = "";
-		try { defaultValue = getDefaultLanguageBundle().getValue(textKey); } catch(MissingResourceException ex) {};
+		try { defaultValue = MasterTranslationFile.getDefault().getValue(textKey); } catch(MissingResourceException ex) {};
 		
 		MasterTranslationFile selectedLanguageBundle = getSelectedLanguageBundle();
 		String localValue = "";
@@ -143,20 +136,25 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @throws IOException If there is a problem saving the translation file.
 	 */
 	public void deleteText(String textKey) throws IOException {
-		MasterTranslationFile lang = this.getSelectedLanguageBundle();
+		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		try {
-			lang.delete(textKey);
+			languageBundle.delete(textKey);
 		} catch (KeyNotFoundException e) {
 			throw new IllegalStateException("Could not delete text with key '" + textKey + "' because it does not exist.");
 		}
+		
+		if (!languageBundles.containsKey(languageBundle.getIdentifier())) {
+			languageBundles.put(languageBundle.getIdentifier(), languageBundle);
+		}
+		
 		refreshTables();
-		this.enableSaveButton(true);
+		this.ui.setEnabled(this.ui.find(UI_COMPONENT_BT_SAVE), true);
 
 		ui.removeConfirmationDialog();
 	}
 	
 	/**
-	 * Method called when a translation has been added.
+	 * Method called when a translation has been edited.
 	 * @param textKey
 	 * @param textValue
 	 * @throws IOException
@@ -174,11 +172,13 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		this.refreshLanguagesAndReselect();
 		this.refreshTables();		
 		
-		this.enableSaveButton(true);
-		
-		//this.ui.setFocus(find(this.visibleTab.getTableName())));
+		this.ui.setEnabled(this.ui.find(UI_COMPONENT_BT_SAVE), true);
+		// TODO: Try to add focus on the selected line, so keyboard shortcut can be used
 	}
 	
+	/**
+	 * Refresh the languages list and reselect the previously selected item
+	 */
 	private void refreshLanguagesAndReselect() {
 		int selectedIndex = this.ui.getSelectedIndex(getLanguageList());
 		this.refreshLanguageList();
@@ -188,28 +188,34 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 	}
 
+	/**
+	 * Saves all edited translations in their respective files
+	 * @throws IOException
+	 */
 	public void saveTranslations () throws IOException {
 		// save all language bundles to disk
 		for (MasterTranslationFile languageBundle : languageBundles.values()) {
 			languageBundle.saveToDisk(InternationalisationUtils.getLanguageDirectory());
 		}
 		
-		this.enableSaveButton(false);
+		this.ui.setEnabled(this.ui.find(UI_COMPONENT_BT_SAVE), false);
 		this.languageBundles.clear();
 		this.refreshLanguagesAndReselect();
 		this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SAVED));
 		this.ui.setVisible(this.ui.find(UI_COMPONENT_PN_RESTART_FRONTLINE), true);
 	}
 	
-	private void enableSaveButton (boolean enable) {
-		this.ui.setEnabled(this.ui.find(UI_COMPONENT_BT_SAVE), enable);
-	}
-	
+	/**
+	 * Removes the edit dialog.
+	 */
 	public void removeEditDialog() {
 		ui.remove(this.editDialog);
 		this.editDialog = null;
 	}
 	
+	/**
+	 * UI Event method: triggered when the user select a language on the left list.
+	 */
 	public void languageSelectionChanged() {
 		System.out.println("TranslationThinletTabController.languageSelectionChanged()");
 		this.refreshTables();
@@ -217,11 +223,17 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		ui.setEnabled(getFilterTextfield(), true);
 	}
 	
+	/**
+	 * UI Event method: triggered when the user has finished editing a property.
+	 */
 	public void propertyItemChanged () {
 		this.selectedProperty  = this.getSelectedTextKey(this.visibleTab);
 		this.enableBottomButtons();
 	}
 	
+	/**
+	 * Enables or disables bottom buttons (Edit/Delete) functions of the selected property in the list
+	 */
 	public  void enableBottomButtons() {
 		Object btEdit = find(UI_COMPONENT_BT_EDIT);
 		Object btDelete = find(UI_COMPONENT_BT_DELETE);
@@ -236,6 +248,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		this.ui.setEnabled(btDelete, shouldEnable);
 	}
 
+	/**
+	 * UI Event method: triggered when the search changes.
+	 * @param filterText The text entered in the search bar
+	 */
 	public void filterTranslations(String filterText) {
 		System.out.println("TranslationThinletTabController.filterTranslations(" + filterText + ")");
 		filterTable(TranslationView.ALL);
@@ -265,18 +281,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 					}
 				}
 			}
+			// if this.selectedProperty has been set before, selectedPropertyIndex should be positive
 			this.ui.setSelectedIndex(table, selectedPropertyIndex);
 		}
-//		if(tableRows != null) {
-//			for(Object tableRow : tableRows) {
-//				
-//				boolean show = rowMatches(tableRow, filterText);
-//				if(show) {
-//					ui.add(table, tableRow);
-//				}
-//			}
-//			this.ui.setSelectedIndex(table, selectedPropertyIndex);
-//		}
 	}
 
 	/**
@@ -311,17 +318,18 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		return selectedKey;
 	}
 
+	/**
+	 * Gets the selected table item in the right pane
+	 * @param view
+	 * @return
+	 */
 	private Object getSelectedTableItem(TranslationView view) {
 		return ui.getSelectedItem(find(view.getTableName()));
 	}
 	
-	private void setSelectedTextValue(TranslationView view, String value) {
-		Object selectedItem = getSelectedTableItem(view);
-		assert(selectedItem != null) : "Should not attempt to update the selected text item if none is selected";
-		Object textColumn = ui.getItem(selectedItem, 2);
-		ui.setText(textColumn, value);
-	}
-	
+	/**
+	 * Prepare lists of all and missing translations
+	 */
 	private void refreshTables() {
 		this.translationTableRows = new HashMap<TranslationView, List<Object>>();
 		
@@ -331,7 +339,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			this.translationTableRows.put(TranslationView.MISSING, emptyList);
 		} else {
 			MasterTranslationFile lang = getSelectedLanguageBundle();
-			MasterTranslationFile defaultLang = getDefaultLanguageBundle();
+			MasterTranslationFile defaultLang = MasterTranslationFile.getDefault();
 			Comparator<Object> comparator = new PropertyRowComparator(this.ui);  
 			
 			// Generate the "all" table rows
@@ -369,14 +377,21 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		initTable(TranslationView.MISSING);
 	}
 	
+	/**
+	 * Inits the table header, functions of the current language
+	 * @param view
+	 */
 	private void initTable(TranslationView view) {
 		if (getSelectedLanguageBundle() != null) {
 			Object table = find(view.getTableName());
-			ui.setText(ui.find(table, "clCurrentLanguage"), getSelectedLanguageBundle().getLanguageName());
+			ui.setText(ui.find(table, UI_COMPONENT_CL_CURRENT_LANGUAGE), getSelectedLanguageBundle().getLanguageName());
 		}
 		filterTable(view);
 	}
 	
+	/**
+	 * Reload FrontlineSMS UI, with or without confirmation (if changes are pending or not)
+	 */
 	public void restartFrontlineSMS () {
 		if (this.ui.isEnabled(find(UI_COMPONENT_BT_SAVE))) {
 			// This is the easiest way to check if some changes are pending
@@ -386,13 +401,19 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 	}
 	
+	/**
+	 * Opens a dialog for creating a new translation (new file/language)
+	 */
 	public void createTranslation () {
 		LanguagePropertiesHandler handler = new LanguagePropertiesHandler(this.ui, this);
 		handler.initDialog();
 		this.ui.add(handler.getDialog());
 	}
 	
-	public void editTranslation () {
+	/**
+	 * Edit the language properties (language name, code and country code)
+	 */
+	public void editProperties () {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		if (languageBundle != null) {
 			LanguagePropertiesHandler handler = new LanguagePropertiesHandler(this.ui, this);
@@ -403,6 +424,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 	}
 	
+	/**
+	 * Delete the current translation, by deleting the bundle file and the cached lists
+	 */
 	public void deleteTranslation () {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
 		this.ui.removeConfirmationDialog();
@@ -433,9 +457,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		assert(columnValues.length > 0) : "The translation key should be provided as the first column value.";
 		Object row = ui.createTableRow(columnValues[0]);
 		String languageFileIdentifier = ui.getAttachedObject(ui.getSelectedItem(getLanguageList()), String.class);
-		int j = 0;
-		if (columnValues[0].equals("action.done"))
-			j = 2; 
+		
 		boolean hasBeenEdited = languageBundles.containsKey(languageFileIdentifier) && this.getSelectedLanguageBundle().hasBeenEdited(columnValues[0]); 
 		for(int i = 0 ; i < columnValues.length ; ++i) {
 			String col = columnValues[i];
@@ -445,7 +467,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	}
 
 //> INSTANCE HELPER METHODS
-	/** Refresh UI elements */
+	/** Refresh language list on the left pane */
 	public void refreshLanguageList() {
 		// Refresh language list
 		Object languageList = getLanguageList();
@@ -460,10 +482,18 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	}
 	
 //> UI ACCESSORS
+	/**
+	 * Gets the language list component on the left pane
+	 */
 	private Object getLanguageList() {
-		return super.find(COMPONENT_LS_LANGUAGES);
+		return super.find(UI_COMPONENT_LS_LANGUAGES);
 	}
 	
+	/**
+	 * Gets the selected language bundle as a {@link MasterTranslationFile} 
+	 * @return A new {@link MasterTranslationFile} if the selected language is not stored in the {@link #languageBundles}, the stored
+	 * {@link MasterTranslationFile} if it is, or <code>null</code> if no item was selected
+	 */
 	private synchronized MasterTranslationFile getSelectedLanguageBundle() {
 		if (ui.getSelectedItem(getLanguageList()) == null) {
 			return null;
@@ -477,47 +507,30 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 	}
 	
-	private MasterTranslationFile getDefaultLanguageBundle() {
-		return this.defaultLanguageBundle;
-	}
-	
-	public LanguageBundle getCurrentResourceBundle () {
-		return this.ui.currentResourceBundle;
-	}
-
+	/**
+	 * Gets the text typed in the search field
+	 * @return The search text
+	 */
 	private String getFilterText() {
 		return ui.getText(getFilterTextfield());
 	}
 
+	/**
+	 * Gets the search text field component 
+	 * @return
+	 */
 	private Object getFilterTextfield() {
-		return find("tfTranslationFilter");
+		return find(UI_COMPONENT_TF_TRANSLATION_FILTER);
 	}
 	
 	/**
-	 * Classe used to sort the properties alphabetically in the lists
-	 * @author Morgan Belkadi <morgan@frontlinesms.com>
+	 * Creates a new translation file
+	 * @param languageName The name of the language, <code>in the original language</code>
+	 * @param isoCode The ISO 639-1 Code for this language
+	 * @param countryCode The country code for the flag representing the country
+	 * @param baseLanguageCode The country code of the language file used as a base for this new translation file (not required)
+	 * @throws IOException
 	 */
-	public class PropertyRowComparator implements Comparator<Object> {
-		/** Instance of {@link UiGeneratorController} used to get the attached objects */
-		private UiGeneratorController ui;
-
-		public PropertyRowComparator (UiGeneratorController ui) {
-			this.ui = ui;
-		}
-		
-		/**
-		 * Inherited compare method from Comparator interface
-		 * Comparison is made on the attached object (String) 
-		 */
-		public int compare(Object o1, Object o2) {
-			return ((Comparable)this.ui.getAttachedObject(o1)).compareTo(this.ui.getAttachedObject(o2));
-		}
-	}
-
-	public UiGeneratorController getUIGeneratorController() {
-		return this.ui;
-	}
-	
 	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode) throws IOException {
 		FileOutputStream fos = null;
 		OutputStreamWriter osw = null;
@@ -527,6 +540,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		MasterTranslationFile languageBundle = MasterTranslationFile.getFromLanguageCode(this.ui.getAttachedObject(baseLanguageCode, String.class));
 		
 		if (languageBundle != null) {
+			// A base language file is used, let's copy the values
 			MasterTranslationFile newLanguageBundle = new MasterTranslationFile(languageBundle.getFilename(), languageBundle.getTranslationFiles());
 			newLanguageBundle.setFilename(newFilename);
 			newLanguageBundle.setCountry(countryCode);
@@ -560,9 +574,17 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 		
 		this.refreshLanguageList();
-		this.selectLanguageFromCode(newFilename);
+		this.selectLanguageFromFilename(newFilename);
 	}
 
+	/**
+	 * Updates the properties of a language
+	 * @param originalLanguageBundle The previous properties
+	 * @param languageName The name of the language, <code>in the original language</code>
+	 * @param isoCode The ISO 639-1 Code for this language
+	 * @param countryCode The country code for the flag representing the country
+	 * @throws IOException
+	 */
 	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode) throws IOException {
 		MasterTranslationFile newLanguageBundle = new MasterTranslationFile(originalLanguageBundle.getFilename(), originalLanguageBundle.getTranslationFiles());
 		
@@ -589,7 +611,11 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		this.saveTranslations();
 	}
 
-	private void selectLanguageFromCode(String languageName) {
+	/**
+	 * Selects a language in the language list by giving the language code
+	 * @param languageName
+	 */
+	private void selectLanguageFromFilename(String languageName) {
 		for (Object item : this.ui.getItems(this.getLanguageList())) {
 			String languageIdentifier = this.ui.getAttachedObject(item, String.class);
 			if (languageIdentifier != null && languageIdentifier.equals(MasterTranslationFile.getIdentifier(languageName))) {
@@ -600,8 +626,11 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 	}
 
+	/**
+	 * Warn the user if he changes to another tab and has unsaved changes 
+	 */
 	public void notify(FrontlineEventNotification notification) {
-		// Tab has changed
+		// This object is registered to the UIGeneratorController and get notified when the users changes tab
 		if(notification instanceof TabChangedNotification) {
 			String newTabName = ((TabChangedNotification) notification).getNewTabName();
 			if (!newTabName.equals(UI_TRANSLATION_TAB_NAME) && this.shouldWarnWhenLostFocus) {
@@ -612,6 +641,28 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 				}
 			}
 			this.shouldWarnWhenLostFocus = (newTabName.equals(UI_TRANSLATION_TAB_NAME));
+		}
+	}
+	
+	/**
+	 * Classe used to sort the properties alphabetically in the lists
+	 * @author Morgan Belkadi <morgan@frontlinesms.com>
+	 */
+	public class PropertyRowComparator implements Comparator<Object> {
+		/** Instance of {@link UiGeneratorController} used to get the attached objects */
+		private UiGeneratorController ui;
+
+		public PropertyRowComparator (UiGeneratorController ui) {
+			this.ui = ui;
+		}
+		
+		/**
+		 * Inherited compare method from Comparator interface
+		 * Comparison is made on the attached object (String) 
+		 */
+		@SuppressWarnings("unchecked")
+		public int compare(Object o1, Object o2) {
+			return ((Comparable<Object>)this.ui.getAttachedObject(o1)).compareTo(this.ui.getAttachedObject(o2));
 		}
 	}
 }

@@ -5,9 +5,9 @@
        	<splitpane weighty="1" weightx="1" rowspan="2" orientation="horizontal">
 			<panel gap="8" weightx="2" weighty="2" columns="1">
 	    		<label text="i18n.common.select.language"/>
-	    		<list name="lsLanguages" perform="editTranslation" action="languageSelectionChanged" selection="single" weighty="1" weightx="1" width="200" height="1">
+	    		<list name="lsLanguages" perform="editProperties" action="languageSelectionChanged" selection="single" weighty="1" weightx="1" width="200" height="1">
 	    			<popupmenu name="menu">
-	                    <menuitem font="bold" icon="/icons/translate_edit.png" action="editTranslation" text="Properties"/>
+	                    <menuitem font="bold" icon="/icons/translate_edit.png" action="editProperties" text="Properties"/>
 	                    <separator/>
 	                    <menuitem icon="/icons/translate_delete.png" action="showConfirmationDialog('deleteTranslation')" text="i18n.action.delete"/>
 	                </popupmenu>
