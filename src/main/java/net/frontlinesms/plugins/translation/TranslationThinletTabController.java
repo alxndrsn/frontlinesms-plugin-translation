@@ -19,6 +19,8 @@ import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.h2.util.FileUtils;
+
 import net.frontlinesms.events.EventObserver;
 import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
@@ -516,39 +518,49 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		return this.ui;
 	}
 	
-	public void createNewLanguageFile(String languageName, String isoCode, String countryCode) throws FileNotFoundException {
+	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode) throws IOException {
 		FileOutputStream fos = null;
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
-		String filename = "frontlineSMS_" + isoCode + ".properties";
+		String newFilename = "frontlineSMS_" + isoCode + ".properties";
+		File newFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", newFilename);
+		MasterTranslationFile languageBundle = MasterTranslationFile.getFromLanguageCode(this.ui.getAttachedObject(baseLanguageCode, String.class));
 		
-		try {
-			File file = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", filename);
-			fos = new FileOutputStream(file);
-			osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
-			out = new PrintWriter(osw);
-			out.write("# The 2-letter ISO-? code for the language\n" +
-					"bundle.language=" + isoCode + "\n" +
-					"# The name of the language IN THAT LANGUAGE - this is how the language will be chosen from\n" +
-					"# menus, so it's important that speakers of that language actually understand this.  If the\n" +
-					"# language name is in a non-Latin alphabet, a latinised or English version of the language\n" +
-					"# name should also be provided, as some fonts will not display the non-Latin version\n" +
-					"bundle.language.name=" + languageName + "\n" +
-					"# 2-letter ISO-? code for the country where they speak this language.  This is used to get\n" +
-					"# a flag to represent this language\n" +
-					"bundle.language.country=" + countryCode + "\n" +
-					"# Some alphabets may not be supported by the default font.  If this is the case, you can\n" +
-					"# specify one or more font names here.  Each font name should be separated by a comma.\n" +
-					"# You may need to tweak this on different systems.\n" +
-					"#font.name=Courier New,Arial\n");
-		} finally {
-			if(out != null) out.close();
-			if(osw != null) try { osw.close(); } catch(IOException ex) {}
-			if(fos != null) try { fos.close(); } catch(IOException ex) {}
+		if (languageBundle != null) {
+			MasterTranslationFile newLanguageBundle = new MasterTranslationFile(languageBundle.getFilename(), languageBundle.getTranslationFiles());
+			newLanguageBundle.setFilename(newFilename);
+			newLanguageBundle.setCountry(countryCode);
+			newLanguageBundle.setLanguageName(languageName);
+			newLanguageBundle.setLanguageCode(isoCode);
+			newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
+		} else {
+			try {
+				fos = new FileOutputStream(newFile);
+				osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
+				out = new PrintWriter(osw);
+				out.write("# The 2-letter ISO-? code for the language\n" +
+						"bundle.language=" + isoCode + "\n" +
+						"# The name of the language IN THAT LANGUAGE - this is how the language will be chosen from\n" +
+						"# menus, so it's important that speakers of that language actually understand this.  If the\n" +
+						"# language name is in a non-Latin alphabet, a latinised or English version of the language\n" +
+						"# name should also be provided, as some fonts will not display the non-Latin version\n" +
+						"bundle.language.name=" + languageName + "\n" +
+						"# 2-letter ISO-? code for the country where they speak this language.  This is used to get\n" +
+						"# a flag to represent this language\n" +
+						"bundle.language.country=" + countryCode + "\n" +
+						"# Some alphabets may not be supported by the default font.  If this is the case, you can\n" +
+						"# specify one or more font names here.  Each font name should be separated by a comma.\n" +
+						"# You may need to tweak this on different systems.\n" +
+						"#font.name=Courier New,Arial\n");
+			} finally {
+				if(out != null) out.close();
+				if(osw != null) try { osw.close(); } catch(IOException ex) {}
+				if(fos != null) try { fos.close(); } catch(IOException ex) {}
+			}
 		}
 		
 		this.refreshLanguageList();
-		this.selectLanguageFromCode(filename);
+		this.selectLanguageFromCode(newFilename);
 	}
 
 	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode) throws IOException {

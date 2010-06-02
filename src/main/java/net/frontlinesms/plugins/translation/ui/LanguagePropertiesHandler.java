@@ -40,31 +40,28 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 //> UI LAYOUT FILE PATHS
 	/** [ui layout file path] The language selection page */
 	private static final String UI_FILE_NEW_TRANSLATION = "/ui/plugins/translation/dgLanguageProperties.xml";
-
-	private static final String I18N_BAD_ISO_CODE = "plugins.translation.bad.iso.code";
+	
+//> I18N
 	private static final String I18N_LANGUAGE_ALREADY_TRANSLATED = "plugins.translation.language.already.translated";
 	private static final String I18N_CONFIRM_SAVE_ALL = "plugins.translation.warning.save.all";
 
 //> UI COMPONENT NAMES
-	private static final String COMPONENT_BT_SAVE = "btSave";
-	private static final String COMPONENT_COMBOBOX_COUNTRIES = "cbCountries";
-	private static final String COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
-	private static final String COMPONENT_TF_ISO_CODE = "tfISOCode";
-
+	private static final String UI_COMPONENT_BT_SAVE = "btSave";
+	private static final String UI_COMPONENT_COMBOBOX_BASE_LANGUAGE = "cbBaseLanguage";
+	private static final String UI_COMPONENT_COMBOBOX_COUNTRIES = "cbCountries";
+	private static final String UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES = "cbKnownLanguages";
+	private static final String UI_COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
+	private static final String UI_COMPONENT_TF_ISO_CODE = "tfISOCode";
 
 //> INSTANCE VARIABLES
+	private MasterTranslationFile originalLanguageBundle;
 	private Object dialogComponent;
 	private UiGeneratorController ui;
-
 	private TranslationThinletTabController owner;
-
-	private MasterTranslationFile originalLanguageBundle;
-
 
 //> CONSTRUCTORS
 	/**
-	 * New Translation Handler
-	 * @param frontline 
+	 * Language Properties Handler
 	 */
 	public LanguagePropertiesHandler(UiGeneratorController ui, TranslationThinletTabController translationThinletTabController) {
 		this.ui = ui;
@@ -80,7 +77,11 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	}
 	
 	public void initDialog() {
-		this.showFlagSelection();
+		this.populateCountryFlags();
+		this.populateKnownLanguages();
+		
+		this.ui.setVisible(find(UI_COMPONENT_COMBOBOX_BASE_LANGUAGE), this.originalLanguageBundle == null);
+		this.ui.setVisible(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES), this.originalLanguageBundle == null);
 	}
 
 	/** @see UiGeneratorController#removeDialog(Object) */
@@ -94,8 +95,8 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	}
 	
 	public void populate(MasterTranslationFile languageBundle) {
-		Object tfLanguageName = find(COMPONENT_TF_LANGUAGE_NAME);
-		Object tfIsoCode = find(COMPONENT_TF_ISO_CODE);
+		Object tfLanguageName = find(UI_COMPONENT_TF_LANGUAGE_NAME);
+		Object tfIsoCode = find(UI_COMPONENT_TF_ISO_CODE);
 		
 		this.ui.setText(tfLanguageName, languageBundle.getLanguageName());
 		this.ui.setText(tfIsoCode, languageBundle.getLanguageCode());
@@ -112,9 +113,6 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 */
 	public void saveProperties(String languageName, String isoCode) throws IOException {
 		if (this.isAllOkForNewTranslation(languageName, isoCode)) {
-//			if (isoCode.length() != FrontlineSMSConstants.ISO_639_1_CODE_LENGTH) {
-//				this.ui.alert(InternationalisationUtils.getI18NString(I18N_BAD_ISO_CODE, FrontlineSMSConstants.ISO_639_1_CODE_LENGTH));
-//			} else
 			if (isLanguageTranslated(isoCode)) {
 				this.ui.alert(InternationalisationUtils.getI18NString(I18N_LANGUAGE_ALREADY_TRANSLATED));
 			} else {
@@ -135,11 +133,15 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	public void doSaveProperties(String languageName, String isoCode) throws IOException {
 		this.ui.removeConfirmationDialog();
 		
-		String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(COMPONENT_COMBOBOX_COUNTRIES))).toString();
+		String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_COUNTRIES))).toString();
 		
 		// If this is a new language
 		if (this.originalLanguageBundle == null) {
-			this.owner.createNewLanguageFile(languageName, isoCode, countryCode);
+			if (this.ui.isSelected(find(UI_COMPONENT_COMBOBOX_BASE_LANGUAGE))) {
+				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES)));
+			} else {
+				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, null);
+			}
 		} else {
 			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode);
 		}
@@ -165,8 +167,8 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 
 //> INSTANCE HELPER METHODS
 	/** Populate and display the countries in a Combo Box. */
-	private void showFlagSelection() {
-		Object countryList = find(COMPONENT_COMBOBOX_COUNTRIES);
+	private void populateCountryFlags() {
+		Object countryList = find(UI_COMPONENT_COMBOBOX_COUNTRIES);
 		int selectedIndex = -1;
 		// Missing translation files
 		for (int i = 0 ; i < EnumCountry.values().length ; ++i) {
@@ -184,24 +186,35 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		this.ui.setSelectedIndex(countryList, selectedIndex);
 	}
 	
+
+	private void populateKnownLanguages() {
+		Object knownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
+		
+		for (MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
+			Object comboBoxChoice = this.ui.createComboboxChoice(languageBundle.getLanguageName(), languageBundle.getLanguageCode());
+			this.ui.setIcon(comboBoxChoice, this.ui.getFlagIcon(languageBundle));
+			this.ui.add(knownLanguages, comboBoxChoice);
+		}
+	}
+	
 	public void fieldChanged (String languageName, String isoCode) {
-//		if (isoCode != null && isoCode.length() > FrontlineSMSConstants.ISO_639_1_CODE_LENGTH) {
-//			isoCode = isoCode.trim().substring(0, FrontlineSMSConstants.ISO_639_1_CODE_LENGTH).toLowerCase();
-//			this.ui.setText(find(COMPONENT_TF_ISO_CODE), isoCode);
-//		}
 		boolean enableDoneField = this.isAllOkForNewTranslation(languageName, isoCode);
 		
-		this.ui.setEnabled(find(COMPONENT_BT_SAVE), enableDoneField);
+		this.ui.setEnabled(find(UI_COMPONENT_BT_SAVE), enableDoneField);
 	}
 
 	private boolean isAllOkForNewTranslation(String languageName, String isoCode) {
 		return (languageName != null 
 				&& isoCode != null
-				&& find(COMPONENT_COMBOBOX_COUNTRIES) != null
+				&& find(UI_COMPONENT_COMBOBOX_COUNTRIES) != null
 				&& languageName.length() > 0
 				&& isoCode.length() > 0
-				//&& isoCode.length() == FrontlineSMSConstants.ISO_639_1_CODE_LENGTH
-				&& this.ui.getSelectedIndex(find(COMPONENT_COMBOBOX_COUNTRIES)) >= 0);
+				&& this.ui.getSelectedIndex(find(UI_COMPONENT_COMBOBOX_COUNTRIES)) >= 0);
+	}
+	
+	public void checkboxBaseChanged(boolean isSelected) {
+		Object knownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
+		this.ui.setEnabled(knownLanguages, isSelected);
 	}
 
 	private Object find (String component) {

@@ -150,6 +150,19 @@ public class MasterTranslationFile extends LanguageBundle {
 		return all;
 	}
 	
+	/**
+	 * Gets the language bundle corresponding to the language code
+	 * @return a {@link MasterTranslationFile} for each {@link FileLanguageBundle} found in the languages directory.
+	 */
+	public static MasterTranslationFile getFromLanguageCode(String languageCode) {
+		for(FileLanguageBundle languageBundle : InternationalisationUtils.getLanguageBundles()) {
+			if (languageBundle.getLanguageCode().equals(languageCode)) {
+				return get(languageBundle);
+			}
+		}
+		return null;
+	}
+	
 	public static MasterTranslationFile getFromIdentifier(String identifier) {
 		String filename = identifier.substring(IDENTIFIER_PREFIX.length());
 		String localeBits = filename.substring("frontlineSMS".length(), filename.length() - ".properties".length());

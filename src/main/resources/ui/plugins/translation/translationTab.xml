@@ -9,7 +9,7 @@
 	    			<popupmenu name="menu">
 	                    <menuitem font="bold" icon="/icons/translate_edit.png" action="editTranslation" text="Properties"/>
 	                    <separator/>
-	                    <menuitem icon="/icons/translate_delete.png" action="deleteTranslation" text="i18n.action.delete"/>
+	                    <menuitem icon="/icons/translate_delete.png" action="showConfirmationDialog('deleteTranslation')" text="i18n.action.delete"/>
 	                </popupmenu>
                 </list>
 	    		<panel name="pnBigButtons" gap="5" weightx="1">
