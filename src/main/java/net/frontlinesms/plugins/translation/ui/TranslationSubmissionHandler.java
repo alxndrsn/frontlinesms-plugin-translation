@@ -131,7 +131,7 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 			String textContent = "Sent translation: " + this.languageBundle.getLanguageName() + " (" + this.languageBundle.getLanguageCode() + ").\n" +
 								 userName + (contribute ? " would" : " wouldn't") + " like to appear as a contributor for this translation.";
 			try {
-				FrontlineUtils.sendToFrontlineSupport(userName, userEmail, subject, textContent, ResourceUtils.getConfigDirectoryPath() + "/languages/" + languageBundle.getFilename());
+				FrontlineUtils.sendToFrontlineSupport(userName, userEmail, subject, textContent, InternationalisationUtils.getLanguageDirectory() + languageBundle.getFilename());
 				this.removeDialog();
 				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SENT));
 			} catch (EmailException e) {

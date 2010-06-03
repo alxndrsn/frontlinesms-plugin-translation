@@ -3,7 +3,6 @@
  */
 package net.frontlinesms.plugins.translation;
 
-import java.awt.FontMetrics;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -450,7 +449,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			languageBundles.remove(languageBundle.getIdentifier());
 			
 			// Then we remove the file
-			if (new File(ResourceUtils.getConfigDirectoryPath() + "/languages/" + languageBundle.getFilename()).delete()) {
+			if (new File(InternationalisationUtils.getLanguageDirectory() + languageBundle.getFilename()).delete()) {
 				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_DELETED));
 			}
 			
@@ -563,7 +562,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
 		String newFilename = "frontlineSMS_" + isoCode + ".properties";
-		File newFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", newFilename);
+		File newFile = new File(InternationalisationUtils.getLanguageDirectory(), newFilename);
 		MasterTranslationFile languageBundle = MasterTranslationFile.getFromLanguageCode(this.ui.getAttachedObject(baseLanguageCode, String.class));
 		
 		if (languageBundle != null) {
@@ -575,7 +574,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			newLanguageBundle.setLanguageCode(isoCode);
 			newLanguageBundle.setLanguageFont(fontNames);
 			
-			newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
+			newLanguageBundle.saveToDisk(InternationalisationUtils.getLanguageDirectory());
 		} else {
 			try {
 				fos = new FileOutputStream(newFile);
@@ -622,13 +621,13 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		newLanguageBundle.setLanguageCode(isoCode);
 		newLanguageBundle.setLanguageFont(fontNames);
 		
-		newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
+		newLanguageBundle.saveToDisk(InternationalisationUtils.getLanguageDirectory());
 		
 		if (!isoCode.equals(originalLanguageBundle.getLanguageCode())) {
 			// If the ISO code has changed during the editing, we have to rename the file
-			File oldFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", originalLanguageBundle.getFilename());
+			File oldFile = new File(InternationalisationUtils.getLanguageDirectory(), originalLanguageBundle.getFilename());
 			String newFilename = "frontlineSMS_" + isoCode + ".properties";
-			File newFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", newFilename);
+			File newFile = new File(InternationalisationUtils.getLanguageDirectory(), newFilename);
 			newLanguageBundle.setFilename(newFilename);
 			oldFile.renameTo(newFile);
 		}
