@@ -217,9 +217,9 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 * @param isoCode The content of the ISO Code Field
 	 */
 	public void fieldChanged (String languageName, String isoCode) {
-		boolean enableDoneField = this.isAllOkForNewTranslation(languageName, isoCode);
+		boolean enableSaveButton = this.isAllOkForNewTranslation(languageName, isoCode);
 		
-		this.ui.setEnabled(find(UI_COMPONENT_BT_SAVE), enableDoneField);
+		this.ui.setEnabled(find(UI_COMPONENT_BT_SAVE), enableSaveButton);
 	}
 
 	/**

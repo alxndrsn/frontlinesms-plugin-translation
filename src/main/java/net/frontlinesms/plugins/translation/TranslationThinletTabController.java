@@ -22,6 +22,7 @@ import net.frontlinesms.events.EventObserver;
 import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
 import net.frontlinesms.plugins.translation.ui.LanguagePropertiesHandler;
+import net.frontlinesms.plugins.translation.ui.TranslationSubmissionHandler;
 import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.events.TabChangedNotification;
@@ -91,6 +92,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	/** Method called when the current translation tab is changed. */
 	public void tabChanged(int selectedTabIndex) {
 		this.visibleTab = TranslationView.getFromTabIndex(selectedTabIndex);
+	}
+	
+	public void alertttt () {
+		this.ui.alert("ALERT");
 	}
 
 	/** UI Event method: show the editor for the selected translation in the translation table. */
@@ -412,6 +417,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	
 	/**
 	 * Edit the language properties (language name, code and country code)
+	 * UI event triggered when double clicking on the language or when selecting "Properties" in the menuitem in the list
 	 */
 	public void editProperties () {
 		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
@@ -443,6 +449,19 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			// And we refresh
 			this.refreshLanguageList();
 			this.languageSelectionChanged(); // Nothing selected
+		}
+	}
+	
+	/**
+	 * Edit the language properties (language name, code and country code)
+	 */
+	public void submitTranslation () {
+		MasterTranslationFile languageBundle = this.getSelectedLanguageBundle();
+		if (languageBundle != null) {
+			TranslationSubmissionHandler handler = new TranslationSubmissionHandler(this.ui, languageBundle);
+			handler.initDialog();
+			
+			this.ui.add(handler.getDialog());	
 		}
 	}
 

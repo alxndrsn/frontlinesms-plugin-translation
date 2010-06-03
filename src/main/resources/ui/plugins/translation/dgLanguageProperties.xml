@@ -9,7 +9,7 @@
     	
     	<label text="i18n.plugins.translation.pick.flag" icon="/icons/flags/gb.png"/>
     	<combobox action="fieldChanged(tfLanguageName.text, tfISOCode.text)" editable="false" name="cbCountries">
-    		<!-- This is automatically populated in the New Translation Handler -->
+    		<!-- This is automatically populated in the Language Properties Handler -->
 		</combobox>
 		
         <label name="lbTypeLanguage" icon="/icons/language.png" text="i18n.plugins.translation.type.iso.code" weightx="1"/>
@@ -21,7 +21,7 @@
     		<!-- This is automatically populated in the New Translation Handler -->
 		</combobox>
 		
-	    <panel gap="5" halign="center">
+	    <panel colspan="2" gap="5" halign="center">
 	        <button action="saveProperties(tfLanguageName.text, tfISOCode.text)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
 	        <button action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
 	    </panel>

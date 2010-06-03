@@ -8,6 +8,7 @@
 	    		<list name="lsLanguages" perform="editProperties" action="languageSelectionChanged" selection="single" weighty="1" weightx="1" width="200" height="1">
 	    			<popupmenu name="menu">
 	                    <menuitem font="bold" icon="/icons/translate_edit.png" action="editProperties" text="Properties"/>
+	                    <menuitem icon="/icons/email_send.png" action="submitTranslation" text="i18n.plugins.translation.submit.translation"/>
 	                    <separator/>
 	                    <menuitem icon="/icons/translate_delete.png" action="showConfirmationDialog('deleteTranslation')" text="i18n.action.delete"/>
 	                </popupmenu>
@@ -26,7 +27,7 @@
 				<tabbedpane action="tabChanged(this.selected)" name="tpTranslations" weightx="1" weighty="1" colspan="2">
 					<tab icon="/icons/translate.png" text="i18n.plugins.translation.translations.all" name="tbAll">
 						<panel gap="8" columns="1" weightx="1" weighty="1">
-							<table action="propertyItemChanged" selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText" enter="editText">
+							<table action="propertyItemChanged" selection="multiple" name="tbAllTranslations" weightx="1" weighty="1" perform="editText">
 								<header>
 									<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>
@@ -36,7 +37,7 @@
 						</panel>
 					</tab>
 					<tab icon="/icons/translate_delete.png" text="i18n.plugins.translation.translations.missing" name="tbMissing">
-						<table action="propertyItemChanged" selection="multiple" name="tbMissingTranslations" perform="editText" enter="editText">
+						<table action="propertyItemChanged" selection="multiple" name="tbMissingTranslations" perform="editText">
 							<header>
 								<column text="i18n.plugins.translation.key" width="230"/>
 									<column text="i18n.plugins.translation.default" width="320"/>
