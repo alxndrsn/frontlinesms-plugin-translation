@@ -2,10 +2,8 @@
 <dialog closable="true" close="removeDialog" icon="/icons/translate_edit.png" bottom="4" columns="2" gap="8" left="4" modal="true" name="submitTranslationDialog" right="4" text="i18n.plugins.translation.submit.translation.title" top="4">
 	<panel bottom="10" columns="2" gap="5" left="10" right="10" top="10">
     	<label icon="/icons/email_send.png" text="i18n.plugins.translation.submitted.language"/>
-    	<combobox editable="false" name="cbSubmittedLanguage">
-    		<!-- This is automatically populated in the Translation Submission Handler -->
-		</combobox>
-		
+    	<label font="bold" name="lbSubmittedLanguage"/>
+    	
         <label icon="/icons/language.png" text="i18n.plugins.translation.your.name" weightx="1"/>
         <textfield name="tfName" action="textFieldChanged(this.text, tfEmail.text)" />
         
@@ -14,8 +12,8 @@
         
         <checkbox colspan="2" name="cbContribute" text="i18n.plugins.translation.accept.contributor" selected="true"/>
     	<panel colspan="2" gap="5" halign="center">
-	        <button action="submitTranslation(tfName.text, tfEmail.text, cbContribute.selected)" name="btSubmit" icon="/icons/tick.png" text="i18n.plugins.translation.action.submit" enabled="false"/>
-	        <button action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
+	        <button type="default" action="submitTranslation(tfName.text, tfEmail.text, cbContribute.selected)" name="btSubmit" icon="/icons/tick.png" text="i18n.plugins.translation.action.submit" enabled="false"/>
+	        <button type="cancel" action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
 	    </panel>
     </panel>
 </dialog>

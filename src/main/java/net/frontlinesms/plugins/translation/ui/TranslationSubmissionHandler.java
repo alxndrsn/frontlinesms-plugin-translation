@@ -19,14 +19,11 @@
  */
 package net.frontlinesms.plugins.translation.ui;
 
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.frontlinesms.FrontlineSMSConstants;
 import net.frontlinesms.FrontlineUtils;
 import net.frontlinesms.email.EmailException;
-import net.frontlinesms.email.smtp.SmtpEmailSender;
 import net.frontlinesms.plugins.translation.MasterTranslationFile;
 import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.ThinletUiEventHandler;
@@ -52,7 +49,7 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 
 //> UI COMPONENT NAMES
 	private static final String UI_COMPONENT_BT_SUBMIT = "btSubmit";
-	private static final String UI_COMPONENT_COMBOBOX_SUBMITTED_LANGUAGE = "cbSubmittedLanguage";
+	private static final String UI_COMPONENT_LB_SUBMITTED_LANGUAGE = "lbSubmittedLanguage";
 
 	private static final String EMAIL_REG_EXP = "^[\\w\\-]([\\.\\w])+[\\w]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
 
@@ -83,7 +80,7 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 	 * Initializes the dialog
 	 */
 	public void initDialog() {
-		this.populateLanguageChoice();
+		this.populateSubmittedLanguage();
 	}
 
 	/** @see UiGeneratorController#removeDialog(Object) */
@@ -101,13 +98,10 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 
 //> INSTANCE HELPER METHODS
 	/** Populate and display the selected language in a Combo Box. */
-	private void populateLanguageChoice() {
-		Object cbSubmittedLanguage = find(UI_COMPONENT_COMBOBOX_SUBMITTED_LANGUAGE);
-		
-		Object comboBoxChoice = this.ui.createComboboxChoice(this.languageBundle.getLanguageName(), this.languageBundle.getLanguageCode());
-		this.ui.setIcon(comboBoxChoice, this.ui.getFlagIcon(this.languageBundle));
-		this.ui.add(cbSubmittedLanguage, comboBoxChoice);
-		this.ui.setSelectedIndex(cbSubmittedLanguage, 0);
+	private void populateSubmittedLanguage() {
+		Object lbSubmittedLanguage = find(UI_COMPONENT_LB_SUBMITTED_LANGUAGE);
+		this.ui.setIcon(lbSubmittedLanguage, this.ui.getFlagIcon(this.languageBundle));
+		this.ui.setText(lbSubmittedLanguage, this.languageBundle.getLanguageName());
 	}
 	
 	/**

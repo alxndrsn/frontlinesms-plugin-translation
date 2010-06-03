@@ -3,6 +3,7 @@
  */
 package net.frontlinesms.plugins.translation;
 
+import java.awt.FontMetrics;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.events.TabChangedNotification;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
+import net.frontlinesms.ui.i18n.LanguageBundle;
 import thinlet.Thinlet;
 
 /**
@@ -40,6 +42,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	/** Filename and path of the XML for the Translation tab. */
 	private static final String UI_FILE_TRANSLATE_DIALOG = "/ui/plugins/translation/dgTranslate.xml";
 
+	private static final String BUNDLE_PROPERTIES_PREFIX = "bundle.";
+	
 	private static final String I18N_TRANSLATION_DELETED = "plugins.translation.translation.file.deleted";
 	private static final String I18N_CONFIRM_RESTART = "plugins.translation.confirm.restart";
 	private static final String I18N_TRANSLATION_SAVED = "plugins.translation.translations.saved";
@@ -92,10 +96,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	/** Method called when the current translation tab is changed. */
 	public void tabChanged(int selectedTabIndex) {
 		this.visibleTab = TranslationView.getFromTabIndex(selectedTabIndex);
-	}
-	
-	public void alertttt () {
-		this.ui.alert("ALERT");
 	}
 
 	/** UI Event method: show the editor for the selected translation in the translation table. */
@@ -299,6 +299,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 */
 	private boolean rowMatches(Object row, String filterText) {
 		assert(Thinlet.getClass(row).equals(Thinlet.ROW)) : "This method is only applicable to Thinlet <row/> components.";
+		
 		if(filterText.length() == 0) {
 			// If the filter text is empty, there is no need to check - it will match everything!
 			return true;
@@ -351,6 +352,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			ArrayList<Object> allRows = new ArrayList<Object>(defaultLang.getProperties().size());
 			for(Entry<String, String> defaultEntry : defaultLang.getProperties().entrySet()) {
 				String key = defaultEntry.getKey();
+				if (key.startsWith(BUNDLE_PROPERTIES_PREFIX)) {
+					continue;
+				}
+				
 				String langValue = null;
 				try {
 					langValue = lang.getValue(key);
@@ -370,6 +375,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			Set<String> missingKeys = comp.getKeysIn1Only();
 			ArrayList<Object> missingRows = new ArrayList<Object>(missingKeys.size());
 			for(String key : missingKeys) {
+				if (key.startsWith(BUNDLE_PROPERTIES_PREFIX)) {
+					continue;
+				}
 				Object tableRow = createTableRow(key, comp.get1(key), "");
 				missingRows.add(tableRow);
 			}
@@ -550,7 +558,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @param baseLanguageCode The country code of the language file used as a base for this new translation file (not required)
 	 * @throws IOException
 	 */
-	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode) throws IOException {
+	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode, String fontNames) throws IOException {
 		FileOutputStream fos = null;
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
@@ -565,6 +573,8 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			newLanguageBundle.setCountry(countryCode);
 			newLanguageBundle.setLanguageName(languageName);
 			newLanguageBundle.setLanguageCode(isoCode);
+			newLanguageBundle.setLanguageFont(fontNames);
+			
 			newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
 		} else {
 			try {
@@ -572,19 +582,19 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 				osw = new OutputStreamWriter(fos, InternationalisationUtils.CHARSET_UTF8);
 				out = new PrintWriter(osw);
 				out.write("# The 2-letter ISO-? code for the language\n" +
-						"bundle.language=" + isoCode + "\n" +
+						LanguageBundle.KEY_LANGUAGE_CODE + "=" + isoCode + "\n" +
 						"# The name of the language IN THAT LANGUAGE - this is how the language will be chosen from\n" +
 						"# menus, so it's important that speakers of that language actually understand this.  If the\n" +
 						"# language name is in a non-Latin alphabet, a latinised or English version of the language\n" +
 						"# name should also be provided, as some fonts will not display the non-Latin version\n" +
-						"bundle.language.name=" + languageName + "\n" +
+						LanguageBundle.KEY_LANGUAGE_NAME + "=" + languageName + "\n" +
 						"# 2-letter ISO-? code for the country where they speak this language.  This is used to get\n" +
 						"# a flag to represent this language\n" +
-						"bundle.language.country=" + countryCode + "\n" +
-						"# Some alphabets may not be supported by the default font.  If this is the case, you can\n" +
-						"# specify one or more font names here.  Each font name should be separated by a comma.\n" +
-						"# You may need to tweak this on different systems.\n" +
-						"#font.name=Courier New,Arial\n");
+						LanguageBundle.KEY_LANGUAGE_COUNTRY + "=" + countryCode + "\n");
+				if (fontNames != null) {
+					out.write("# The fonts used to correctly display this language\n" +
+							LanguageBundle.KEY_LANGUAGE_FONT + "=" + fontNames + "\n");
+				}
 			} finally {
 				if(out != null) out.close();
 				if(osw != null) try { osw.close(); } catch(IOException ex) {}
@@ -604,16 +614,17 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @param countryCode The country code for the flag representing the country
 	 * @throws IOException
 	 */
-	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode) throws IOException {
+	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode, String fontNames) throws IOException {
 		MasterTranslationFile newLanguageBundle = new MasterTranslationFile(originalLanguageBundle.getFilename(), originalLanguageBundle.getTranslationFiles());
 		
 		newLanguageBundle.setCountry(countryCode);
 		newLanguageBundle.setLanguageName(languageName);
 		newLanguageBundle.setLanguageCode(isoCode);
+		newLanguageBundle.setLanguageFont(fontNames);
+		
 		newLanguageBundle.saveToDisk(new File(ResourceUtils.getConfigDirectoryPath() + "/languages/"));
 		
 		if (!isoCode.equals(originalLanguageBundle.getLanguageCode())) {
-			
 			// If the ISO code has changed during the editing, we have to rename the file
 			File oldFile = new File(ResourceUtils.getConfigDirectoryPath() + "/languages/", originalLanguageBundle.getFilename());
 			String newFilename = "frontlineSMS_" + isoCode + ".properties";

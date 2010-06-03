@@ -11,6 +11,6 @@
 	
 	<panel halign="center" gap="8" colspan="2">
 		<button text="i18n.action.ok" action="propertyEdited(tfKey.text, tfLocal.text)" icon="/icons/tick.png"/> 
-		<button text="i18n.action.cancel" action="removeEditDialog" icon="/icons/cross.png"/>
+		<button type="cancel" text="i18n.action.cancel" action="removeEditDialog" icon="/icons/cross.png"/>
 	</panel> 
 </dialog>

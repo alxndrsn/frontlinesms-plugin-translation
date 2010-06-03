@@ -48,9 +48,11 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 //> UI COMPONENT NAMES
 	private static final String UI_COMPONENT_BT_SAVE = "btSave";
 	private static final String UI_COMPONENT_CHECKBOX_BASE_LANGUAGE = "cbBaseLanguage";
+	private static final String UI_COMPONENT_CHECKBOX_FONT = "cbFont";
 	private static final String UI_COMPONENT_COMBOBOX_COUNTRIES = "cbCountries";
 	private static final String UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES = "cbKnownLanguages";
 	private static final String UI_COMPONENT_TF_LANGUAGE_NAME = "tfLanguageName";
+	private static final String UI_COMPONENT_TF_FONT = "tfFont";
 	private static final String UI_COMPONENT_TF_ISO_CODE = "tfISOCode";
 
 //> INSTANCE VARIABLES
@@ -107,9 +109,19 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	public void populate(MasterTranslationFile languageBundle) {
 		Object tfLanguageName = find(UI_COMPONENT_TF_LANGUAGE_NAME);
 		Object tfIsoCode = find(UI_COMPONENT_TF_ISO_CODE);
+		Object cbFont = find(UI_COMPONENT_CHECKBOX_FONT);
+		Object tfFont = find(UI_COMPONENT_TF_FONT);
 		
 		this.ui.setText(tfLanguageName, languageBundle.getLanguageName());
 		this.ui.setText(tfIsoCode, languageBundle.getLanguageCode());
+		
+		String fonts = languageBundle.getLanguageFont();
+		if (fonts != null) {
+			this.ui.setText(tfFont, languageBundle.getLanguageFont());
+		}
+		
+		this.ui.setSelected(cbFont, fonts != null);
+		this.ui.setEnabled(tfFont, fonts != null);
 		
 		this.originalLanguageBundle = languageBundle;
 	}
@@ -147,15 +159,15 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		String isoCode = this.ui.getText(find(UI_COMPONENT_TF_ISO_CODE));
 		String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_COUNTRIES))).toString();
 		
+		// Not required
+		Object baseLanguageCode = (this.ui.isSelected(find(UI_COMPONENT_CHECKBOX_BASE_LANGUAGE)) ? this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES)) : null);
+		String fontNames = (this.ui.isSelected(find(UI_COMPONENT_CHECKBOX_FONT)) ? this.ui.getText(find(UI_COMPONENT_TF_FONT)) : null);
+		
 		// If this is a new language
 		if (this.originalLanguageBundle == null) {
-			if (this.ui.isSelected(find(UI_COMPONENT_CHECKBOX_BASE_LANGUAGE))) {
-				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, this.ui.getSelectedItem(find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES)));
-			} else {
-				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, null);
-			}
+				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, baseLanguageCode, fontNames);
 		} else {
-			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode);
+			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode, fontNames);
 		}
 		this.removeDialog();
 	}
@@ -216,7 +228,13 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 * @param languageName The content of the Language Name Field
 	 * @param isoCode The content of the ISO Code Field
 	 */
-	public void fieldChanged (String languageName, String isoCode) {
+	public void fieldChanged () {
+		Object tfLanguageName = find(UI_COMPONENT_TF_LANGUAGE_NAME);
+		Object tfIsoCode = find(UI_COMPONENT_TF_ISO_CODE);
+		
+		String languageName = this.ui.getText(tfLanguageName);
+		String isoCode = this.ui.getText(tfIsoCode);
+		
 		boolean enableSaveButton = this.isAllOkForNewTranslation(languageName, isoCode);
 		
 		this.ui.setEnabled(find(UI_COMPONENT_BT_SAVE), enableSaveButton);
@@ -242,8 +260,24 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 * @param isSelected <code>true</code> if the Checkbox is checked, <code>false</code> otherwise
 	 */
 	public void checkboxBaseChanged(boolean isSelected) {
-		Object knownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
-		this.ui.setEnabled(knownLanguages, isSelected);
+		Object cbKnownLanguages = find(UI_COMPONENT_COMBOBOX_KNOWN_LANGUAGES);
+		this.ui.setEnabled(cbKnownLanguages, isSelected);
+	}
+	
+	/**
+	 * UI Event triggered when the user checks or unchecks the "Font" checkbox
+	 * @param isSelected <code>true</code> if the Checkbox is checked, <code>false</code> otherwise
+	 */
+	public void checkboxFontChanged(boolean isSelected) {
+		Object tfFont = find(UI_COMPONENT_TF_FONT);
+		this.ui.setEnabled(tfFont, isSelected);
+		
+		this.fieldChanged();
+	}
+	
+	/** @see UiGeneratorController#showHelpPage(String) */
+	public void showHelpPage(String page) {
+		this.ui.showHelpPage(page);
 	}
 
 	private Object find (String component) {

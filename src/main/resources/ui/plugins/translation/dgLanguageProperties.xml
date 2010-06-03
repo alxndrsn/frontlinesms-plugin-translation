@@ -1,29 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dialog closable="true" close="removeDialog" icon="/icons/translate_edit.png" bottom="4" columns="2" gap="8" left="4" modal="true" name="languageSelectionDialog" right="4" text="i18n.plugins.translation.language.properties" top="4">
-	<panel bottom="10" columns="2" gap="5" left="10" right="10" top="10">
+	<panel bottom="10" columns="2" gap="7" left="10" right="10" top="10">
+		<!-- Language name -->
         <label name="lbTypeLanguage" icon="/icons/language.png" text="i18n.plugins.translation.type.language"/>
-        <textfield action="fieldChanged(this.text, tfISOCode.text)" name="tfLanguageName"/>
-        <panel colspan="2" gap="20">
-    		<label name="lbTypeLanguage" font="11" text="i18n.plugins.translation.english.too"/>
-    	</panel>
-    	
+        <textfield action="fieldChanged" name="tfLanguageName"/>
+        
+        <!-- Flag -->
     	<label text="i18n.plugins.translation.pick.flag" icon="/icons/flags/gb.png"/>
-    	<combobox action="fieldChanged(tfLanguageName.text, tfISOCode.text)" editable="false" name="cbCountries">
+    	<combobox action="fieldChanged" editable="false" name="cbCountries">
     		<!-- This is automatically populated in the Language Properties Handler -->
 		</combobox>
 		
+		<!-- Language name -->
         <label name="lbTypeLanguage" icon="/icons/language.png" text="i18n.plugins.translation.type.iso.code" weightx="1"/>
-        <textfield halign="left" action="fieldChanged(tfLanguageName.text, this.text)" name="tfISOCode" columns="10"/>
-        <button halign="left" type="link" colspan="2" font="11" action="openBrowser('http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes')" text="i18n.plugins.translation.help.iso.639-1"/>
+        <textfield halign="left" action="fieldChanged" name="tfISOCode" columns="10"/>
         
+        <!-- Font -->
+		<checkbox name="cbFont" action="checkboxFontChanged(this.selected)" text="i18n.plugins.translation.language.requires.font" selected="false"/>
+    	<textfield name="tfFont" action="fieldChanged" enabled="false"/>
+        
+        <!-- Base language (hidden when editing) -->
         <checkbox name="cbBaseLanguage" text="i18n.plugins.translation.base.language" action="checkboxBaseChanged(this.selected)"/>
-    	<combobox action="fieldChanged(tfLanguageName.text, tfISOCode.text)" editable="false" name="cbKnownLanguages" enabled="false">
+    	<combobox action="fieldChanged" editable="false" name="cbKnownLanguages" enabled="false">
     		<!-- This is automatically populated in the New Translation Handler -->
 		</combobox>
+
+		<!-- Help line -->
+		<button colspan="2" icon="/icons/help.png" halign="left" type="link" colspan="2" action="showHelpPage('translation.htm')" text="i18n.plugins.translation.help.about.languages"/>
 		
+		<!-- Bottom buttons -->
 	    <panel colspan="2" gap="5" halign="center">
-	        <button action="saveProperties(tfLanguageName.text, tfISOCode.text)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
-	        <button action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
+	        <button type="default" action="saveProperties(tfLanguageName.text, tfISOCode.text)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
+	        <button type="cancel" action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
 	    </panel>
+	    <!-- 
+	    <panel colspan="2" gap="20">
+    		<label name="lbTypeLanguage" font="11" text="i18n.plugins.translation.english.too"/>
+    	</panel>
+    	<button halign="left" type="link" colspan="2" font="11" action="openBrowser('http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes')" text="i18n.plugins.translation.help.iso.639-1"/>
+         -->
     </panel>
 </dialog>

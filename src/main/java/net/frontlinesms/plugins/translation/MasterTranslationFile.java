@@ -50,8 +50,6 @@ public class MasterTranslationFile extends LanguageBundle {
 	
 	private final List<TextFileContent> translationFiles;
 
-	private final TextFileContent extraTranslations;
-
 	private ArrayList<String> changes;
 	
 
@@ -60,8 +58,6 @@ public class MasterTranslationFile extends LanguageBundle {
 		super(getTranslationMap(translationFiles));
 		this.filename = filename;
 		this.translationFiles = translationFiles;
-		this.extraTranslations = TextFileContent.createEmpty();
-		this.translationFiles.add(this.extraTranslations);
 		this.changes = new ArrayList<String>();
 	}
 	
@@ -87,7 +83,7 @@ public class MasterTranslationFile extends LanguageBundle {
 			for(TextFileContent translationFile : this.translationFiles) {
 				for(String line : translationFile.getLines()) {
 					out.write(line + "\n");
-				}	
+				}
 				out.write("\n");
 			}
 		} finally {
@@ -289,8 +285,6 @@ public class MasterTranslationFile extends LanguageBundle {
 				// Attempt to update the translation in the current files
 				updateTranslation(textKey, textValue);
 			} catch(KeyNotFoundException ex) {
-				// Add to the extra translations
-				this.extraTranslations.addLine(textKey + "=" + textValue);
 			}
 		}
 		
@@ -370,20 +364,40 @@ public class MasterTranslationFile extends LanguageBundle {
 	
 	/** Sets the name of this language bundle */
 	/** @throws KeyNotFoundException */
-	public void setLanguageName(String country) {
-		super.setCountry(country);
+	public void setLanguageName(String languageName) {
+		super.setLanguageName(languageName);
 		try {
-			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_NAME, country);
+			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_NAME, languageName);
 		} catch (KeyNotFoundException ex) { }
 	}
 
 	/** Sets the ISO-???? code relating to this language */
 	/** @throws KeyNotFoundException */
-	public void setLanguageCode(String country) {
-		super.setCountry(country);
+	public void setLanguageCode(String languageCode) {
+		super.setLanguageCode(languageCode);
 		try {
-			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_CODE, country);
+			this.translationFiles.get(0).updateValue(KEY_LANGUAGE_CODE, languageCode);
 		} catch (KeyNotFoundException ex) { }
+	}
+	
+	/** Sets the font for this language bundle */
+	/** @throws KeyNotFoundException */
+	public void setLanguageFont(String fontNames) {
+		super.setLanguageFont(fontNames);
+		TextFileContent tfContent = this.translationFiles.get(0); 
+		if (fontNames == null || fontNames.length() == 0) {
+			try {
+				tfContent.removeLine(tfContent.getLine(KEY_LANGUAGE_FONT));
+			} catch (KeyNotFoundException e) {
+				// Font wasn't previously set. No problem.
+			}
+		} else {
+			try {
+				tfContent.updateValue(KEY_LANGUAGE_FONT, fontNames);
+			} catch (KeyNotFoundException ex) { 
+				tfContent.addLine(KEY_LANGUAGE_FONT + "=" + fontNames);
+			}
+		}
 	}
 	
 	public ArrayList<String> getChanges() {
@@ -401,7 +415,7 @@ public class MasterTranslationFile extends LanguageBundle {
 
 class TextFileContent {
 	/** Prefix for plugins properties */
-	private static final String I18N_PLUGINS_PREFIX = "plugins.";
+	private static final String PLUGINS_PREFIX = "plugins.";
 	/** Description of this file */
 	private String description;
 	/** Lines in the file */
@@ -481,7 +495,7 @@ class TextFileContent {
 			in = new BufferedReader(new InputStreamReader(is, InternationalisationUtils.CHARSET_UTF8));
 			String line;
 			while((line = in.readLine()) != null) {
-				if (!line.startsWith(I18N_PLUGINS_PREFIX)) {
+				if (!line.startsWith(PLUGINS_PREFIX)) {
 					content.addLine(line);
 				}
 			}
