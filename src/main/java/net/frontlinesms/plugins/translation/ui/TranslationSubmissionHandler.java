@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 import net.frontlinesms.FrontlineUtils;
 import net.frontlinesms.email.EmailException;
 import net.frontlinesms.plugins.translation.MasterTranslationFile;
-import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.ThinletUiEventHandler;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;

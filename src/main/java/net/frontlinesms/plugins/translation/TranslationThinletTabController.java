@@ -23,7 +23,6 @@ import net.frontlinesms.events.FrontlineEventNotification;
 import net.frontlinesms.plugins.BasePluginThinletTabController;
 import net.frontlinesms.plugins.translation.ui.LanguagePropertiesHandler;
 import net.frontlinesms.plugins.translation.ui.TranslationSubmissionHandler;
-import net.frontlinesms.resources.ResourceUtils;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.events.TabChangedNotification;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
