@@ -44,6 +44,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	
 	private static final String I18N_TRANSLATION_DELETED = "plugins.translation.translation.file.deleted";
 	private static final String I18N_CONFIRM_RESTART = "plugins.translation.confirm.restart";
+	private static final String I18N_MESSAGE_TRANSLATION_TAB_LOADED = "plugins.translation.tab.loaded";
 	private static final String I18N_TRANSLATION_SAVED = "plugins.translation.translations.saved";
 	private static final String I18N_WARNING_TRANSLATIONS_NOT_SAVED = "plugins.translation.warning.translations.not.saved";
 	
@@ -661,12 +662,16 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// This object is registered to the UIGeneratorController and get notified when the users changes tab
 		if(notification instanceof TabChangedNotification) {
 			String newTabName = ((TabChangedNotification) notification).getNewTabName();
-			if (!newTabName.equals(UI_TRANSLATION_TAB_NAME) && this.shouldWarnWhenLostFocus) {
-				// Focus lost
-				if (this.languageBundles.size() > 0) {
-					// Then this means we're currently editing some translations, which need to be saved
-					this.ui.alert(InternationalisationUtils.getI18NString(I18N_WARNING_TRANSLATIONS_NOT_SAVED));
+			if (!newTabName.equals(UI_TRANSLATION_TAB_NAME)) {
+				if (this.shouldWarnWhenLostFocus) {
+					// Focus lost
+					if (this.languageBundles.size() > 0) {
+						// Then this means we're currently editing some translations, which need to be saved
+						this.ui.alert(InternationalisationUtils.getI18NString(I18N_WARNING_TRANSLATIONS_NOT_SAVED));
+					}
 				}
+			} else {
+				this.ui.setStatus(InternationalisationUtils.getI18NString(I18N_MESSAGE_TRANSLATION_TAB_LOADED));
 			}
 			this.shouldWarnWhenLostFocus = (newTabName.equals(UI_TRANSLATION_TAB_NAME));
 		}
