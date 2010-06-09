@@ -449,7 +449,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			languageBundles.remove(languageBundle.getIdentifier());
 			
 			// Then we remove the file
-			if (new File(InternationalisationUtils.getLanguageDirectory() + languageBundle.getFilename()).delete()) {
+			if (new File(InternationalisationUtils.getLanguageDirectory() + File.separator + languageBundle.getFilename()).delete()) {
 				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_DELETED));
 			}
 			
@@ -562,7 +562,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
 		String newFilename = "frontlineSMS_" + isoCode + ".properties";
-		File newFile = new File(InternationalisationUtils.getLanguageDirectory(), newFilename);
+		File newFile = new File(InternationalisationUtils.getLanguageDirectory() + File.separator, newFilename);
 		MasterTranslationFile languageBundle = MasterTranslationFile.getFromLanguageCode(this.ui.getAttachedObject(baseLanguageCode, String.class));
 		
 		if (languageBundle != null) {

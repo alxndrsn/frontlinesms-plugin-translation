@@ -150,7 +150,7 @@ public class MasterTranslationFile extends LanguageBundle {
 		String localeBits = filename.substring("frontlineSMS".length(), filename.length() - ".properties".length());
 		String[] bits = localeBits.split("_");
 		
-		File file = new File(InternationalisationUtils.getLanguageDirectory(), filename);
+		File file = new File(InternationalisationUtils.getLanguageDirectory() + File.separator, filename);
 		Locale locale;
 
 		if(bits.length <= 1) {
