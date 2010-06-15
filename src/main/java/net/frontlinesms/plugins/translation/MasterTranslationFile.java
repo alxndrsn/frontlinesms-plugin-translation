@@ -281,11 +281,8 @@ public class MasterTranslationFile extends LanguageBundle {
 			if (super.getProperties().put(textKey, textValue) == null || !textValue.equals(oldValue)) {
 				this.valueChanged(textKey);
 			}
-			try {
-				// Attempt to update the translation in the current files
-				updateTranslation(textKey, textValue);
-			} catch(KeyNotFoundException ex) {
-			}
+			
+			updateTranslation(textKey, textValue);
 		}
 		
 	}
@@ -300,9 +297,15 @@ public class MasterTranslationFile extends LanguageBundle {
 	 * @param textValue
 	 * @throws KeyNotFoundException 
 	 */
-	private void updateTranslation(String textKey, String textValue) throws KeyNotFoundException {
-		TextFileContent tfc = getTextFileContent(textKey);
-		tfc.updateValue(textKey, textValue);
+	private void updateTranslation(String textKey, String textValue) {
+		TextFileContent tfc;
+		try {
+			tfc = getTextFileContent(textKey);
+			tfc.updateValue(textKey, textValue);
+		} catch (KeyNotFoundException ex) {
+			tfc = this.translationFiles.get(0);
+			tfc.addLine(textKey + "=" + textValue);
+		}
 	}
 
 	public void delete(String textKey) throws KeyNotFoundException {
