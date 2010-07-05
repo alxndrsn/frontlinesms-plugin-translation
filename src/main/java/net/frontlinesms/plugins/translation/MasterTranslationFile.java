@@ -195,7 +195,7 @@ public class MasterTranslationFile extends LanguageBundle {
 					textResource = controller.getTextResource(locale);
 				}
 				String tfcDescription = "Plugin: " + controller.getName();
-				content.add(TextFileContent.getFromMap(tfcDescription, textResource));
+				content.add(TextFileContent.getFromMap(tfcDescription, textResource, content.get(0)));
 			} catch (Exception ex) {
 				throw new RuntimeException("Unable to instantiate plugin: " + pluginClass.getName(), ex);
 			}
@@ -233,7 +233,7 @@ public class MasterTranslationFile extends LanguageBundle {
 				PluginController controller = pluginClass.newInstance();
 				content.add(TextFileContent.getFromMap(
 						"Plugin: " + controller.getName(),
-						controller.getDefaultTextResource()));
+						controller.getDefaultTextResource(), content.get(0)));
 			} catch (Exception ex) {
 				throw new RuntimeException("Unable to instantiate plugin: " + pluginClass.getName(), ex);
 			}
@@ -272,7 +272,6 @@ public class MasterTranslationFile extends LanguageBundle {
 		if (textValue.equals("")) {
 			try {
 				this.delete(textKey);
-				this.valueChanged(textKey);
 			} catch (KeyNotFoundException e) {
 				// Key didn't exist
 			}
@@ -312,6 +311,7 @@ public class MasterTranslationFile extends LanguageBundle {
 		TextFileContent tfc = getTextFileContent(textKey);
 		String line = tfc.getLine(textKey);
 		tfc.removeLine(line);
+		tfc.addLine(textKey + "=");
 		this.valueChanged(textKey);
 		super.getProperties().remove(textKey);
 	}
@@ -483,10 +483,12 @@ class TextFileContent {
 		this.lines.set(lines.indexOf(oldLine), newLine);
 	}
 	
-	static TextFileContent getFromMap(String description, Map<String, String> map) {
+	static TextFileContent getFromMap(String description, Map<String, String> map, TextFileContent coreFileContent) {
 		TextFileContent content = new TextFileContent(description);
 		for(Entry<String, String> entry : map.entrySet()) {
-			content.addLine(entry.getKey() + "=" + entry.getValue());
+			if (!coreFileContent.containsKey(entry.getKey())) {
+				content.addLine(entry.getKey() + "=" + entry.getValue());
+			}
 		}
 		return content;
 	}
@@ -498,9 +500,9 @@ class TextFileContent {
 			in = new BufferedReader(new InputStreamReader(is, InternationalisationUtils.CHARSET_UTF8));
 			String line;
 			while((line = in.readLine()) != null) {
-				if (!line.startsWith(PLUGINS_PREFIX)) {
+				//if (!line.startsWith(PLUGINS_PREFIX)) {
 					content.addLine(line);
-				}
+				//}
 			}
 			return content;
 		} catch (IOException ex) {

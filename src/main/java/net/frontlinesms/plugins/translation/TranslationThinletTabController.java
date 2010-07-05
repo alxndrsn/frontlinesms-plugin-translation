@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -345,6 +346,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		} else {
 			MasterTranslationFile lang = getSelectedLanguageBundle();
 			MasterTranslationFile defaultLang = MasterTranslationFile.getDefault();
+			Set<String> missingKeys = new HashSet<String>();
 			Comparator<Object> comparator = new PropertyRowComparator(this.ui);  
 			
 			// Generate the "all" table rows
@@ -361,6 +363,9 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 				} catch(MissingResourceException ex) {
 					langValue = "";
 				}
+				if (langValue.equals("")) {
+					missingKeys.add(key);
+				}
 				Object tableRow = createTableRow(key, defaultEntry.getValue(), langValue);
 				allRows.add(tableRow);
 			}
@@ -371,7 +376,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			LanguageBundleComparison comp = new LanguageBundleComparison(defaultLang, lang);
 			
 			// populate and enable the missing table
-			Set<String> missingKeys = comp.getKeysIn1Only();
+			missingKeys.addAll(comp.getKeysIn1Only());
 			ArrayList<Object> missingRows = new ArrayList<Object>(missingKeys.size());
 			for(String key : missingKeys) {
 				if (key.startsWith(BUNDLE_PROPERTIES_PREFIX)) {
