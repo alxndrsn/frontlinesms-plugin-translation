@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.frontlinesms.plugins</groupId>
 	<artifactId>frontlinesms-plugin-translation</artifactId>
-	<name>FrontlineSMS Translation plugin</name>
+	<name>FrontlineSMS Translation Plugin</name>
 	<version>0.00.05-SNAPSHOT</version>
 	<description>Translation plugin for FrontlineSMS</description>
 	<licenses>
