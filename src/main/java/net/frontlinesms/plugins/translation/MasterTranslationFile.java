@@ -417,8 +417,6 @@ public class MasterTranslationFile extends LanguageBundle {
 }
 
 class TextFileContent {
-	/** Prefix for plugins properties */
-	private static final String PLUGINS_PREFIX = "plugins.";
 	/** Description of this file */
 	private String description;
 	/** Lines in the file */
