@@ -30,6 +30,7 @@ import net.frontlinesms.plugins.PluginProperties;
 import net.frontlinesms.plugins.translation.KeyNotFoundException;
 import net.frontlinesms.plugins.translation.MasterTranslationFile;
 import net.frontlinesms.plugins.translation.TextFileContent;
+import net.frontlinesms.ui.FrontlineUI;
 import net.frontlinesms.ui.i18n.*;
 
 /**
@@ -194,7 +195,7 @@ public class MasterTranslationFile extends LanguageBundle {
 				} else {
 					textResource = controller.getTextResource(locale);
 				}
-				String tfcDescription = "Plugin: " + controller.getName();
+				String tfcDescription = "Plugin: " + controller.getName(FrontlineUI.currentResourceBundle.getLocale());
 				content.add(TextFileContent.getFromMap(tfcDescription, textResource, content.get(0)));
 			} catch (Exception ex) {
 				throw new RuntimeException("Unable to instantiate plugin: " + pluginClass.getName(), ex);
@@ -232,7 +233,7 @@ public class MasterTranslationFile extends LanguageBundle {
 			try {
 				PluginController controller = pluginClass.newInstance();
 				content.add(TextFileContent.getFromMap(
-						"Plugin: " + controller.getName(),
+						"Plugin: " + controller.getName(FrontlineUI.currentResourceBundle.getLocale()),
 						controller.getDefaultTextResource(), content.get(0)));
 			} catch (Exception ex) {
 				throw new RuntimeException("Unable to instantiate plugin: " + pluginClass.getName(), ex);

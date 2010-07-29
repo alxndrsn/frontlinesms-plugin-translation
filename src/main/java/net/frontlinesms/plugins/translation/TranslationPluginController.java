@@ -15,7 +15,7 @@ import net.frontlinesms.ui.UiGeneratorController;
 /**
  * @author Alex Anderson <alex@frontlinesms.com>
  */
-@PluginControllerProperties(name="Translation", iconPath="/icons/translate.png", springConfigLocation=PluginControllerProperties.NO_VALUE, hibernateConfigPath=PluginControllerProperties.NO_VALUE)
+@PluginControllerProperties(name="Translation (Beta)", i18nKey="plugins.translation.tab.name", iconPath="/icons/translate.png", springConfigLocation=PluginControllerProperties.NO_VALUE, hibernateConfigPath=PluginControllerProperties.NO_VALUE)
 public class TranslationPluginController extends BasePluginController {
 //> STATIC CONSTANTS
 	/** Filename and path of the XML for the translation tab. */
