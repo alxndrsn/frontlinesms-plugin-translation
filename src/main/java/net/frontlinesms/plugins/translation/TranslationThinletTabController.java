@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -503,8 +504,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		// Refresh language list
 		Object languageList = getLanguageList();
 		super.removeAll(languageList);
+		List<MasterTranslationFile> existingLanguageBundles = (List<MasterTranslationFile>) MasterTranslationFile.getAll();
+		Collections.sort(existingLanguageBundles);
 		
-		for (MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
+		for (MasterTranslationFile languageBundle : existingLanguageBundles) {
 			boolean shouldBeBold = languageBundles.containsKey(languageBundle.getIdentifier());
 			Object item = ui.createListItem(languageBundle.getLanguageName(), languageBundle.getIdentifier(), shouldBeBold);
 			ui.setIcon(item, ui.getFlagIcon(languageBundle));

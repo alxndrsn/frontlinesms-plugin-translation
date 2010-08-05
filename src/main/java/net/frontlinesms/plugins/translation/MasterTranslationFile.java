@@ -38,7 +38,7 @@ import net.frontlinesms.ui.i18n.*;
  * @author Alex <alex@frontlinesms.com>
  * @author Morgan <morgan@frontlinesms.com>
  */
-public class MasterTranslationFile extends LanguageBundle {
+public class MasterTranslationFile extends LanguageBundle implements Comparable<MasterTranslationFile> {
 //> STATIC CONSTANTS
 	/** prefix applied in {@link #getIdentifier()} */
 	private static final String IDENTIFIER_PREFIX = "master:";
@@ -414,6 +414,10 @@ public class MasterTranslationFile extends LanguageBundle {
 
 	public boolean hasBeenEdited(String textKey) {
 		return this.changes.contains(textKey);
+	}
+
+	public int compareTo(MasterTranslationFile o) {
+		return getLanguageName().compareTo(o.getLanguageName());
 	}
 }
 
