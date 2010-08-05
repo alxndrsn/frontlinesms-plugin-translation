@@ -30,7 +30,7 @@
 		
 		<!-- Bottom buttons -->
 	    <panel colspan="2" gap="5" halign="center">
-	        <button type="default" action="saveProperties(tfLanguageName.text, tfISOCode.text)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
+	        <button type="default" action="saveProperties(tfLanguageName.text, tfISOCode.text, cbCountries)" name="btSave" icon="/icons/tick.png" text="i18n.action.save" enabled="false"/>
 	        <button type="cancel" action="removeDialog" icon="/icons/cross.png" text="i18n.action.cancel"/>
 	    </panel>
 	    <!-- 

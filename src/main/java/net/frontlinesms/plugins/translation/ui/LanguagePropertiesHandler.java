@@ -133,9 +133,10 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 	 * @param list
 	 * @throws IOException 
 	 */
-	public void saveProperties(String languageName, String isoCode) throws IOException {
+	public void saveProperties(String languageName, String isoCode, Object countryList) throws IOException {
 		if (this.isAllOkForNewTranslation(languageName, isoCode)) {
-			if (isLanguageTranslated(isoCode)) {
+			String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(countryList), String.class);
+			if (isLanguageAndCountryAlreadyPresent(isoCode, countryCode)) {
 				this.ui.alert(InternationalisationUtils.getI18NString(I18N_LANGUAGE_ALREADY_TRANSLATED));
 			} else {
 				if (this.originalLanguageBundle == null) {
@@ -165,23 +166,50 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		
 		// If this is a new language
 		if (this.originalLanguageBundle == null) {
-				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, baseLanguageCode, fontNames);
+				this.owner.createNewLanguageFile(languageName, isoCode, countryCode, baseLanguageCode, fontNames, getFileName(isoCode, countryCode));
 		} else {
-			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode, fontNames);
+			this.owner.updateTranslationFile(this.originalLanguageBundle, languageName, isoCode, countryCode, fontNames, getFileName(isoCode, countryCode));
 		}
 		this.removeDialog();
 	}
 
+	private String getFileName(String isoCode, String countryCode) {
+		return "frontlineSMS_" + isoCode + (isLanguageAlreadyPresent(isoCode) ? "_" + countryCode.toUpperCase() : "") + ".properties";
+	}
+
+	/**
+	 * Checks if the language is already translated, taking the country code into account
+	 * @param isoCode ISO-639-1 Code of the language
+	 * @return <code>true</code> if the language is already translated, <code>false</code> otherwise.
+	 */
+	public boolean isLanguageAndCountryAlreadyPresent(String isoCode, String countryCode) {
+		for(MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
+			// If the code is already present, we return true
+			// But if the given ISO Code is the one that had been populated, it means that we are just editing this language
+			if (languageBundle.getLanguageCode().equals(isoCode)
+					&& languageBundle.getCountry().equals(countryCode) 
+					&& (this.originalLanguageBundle == null
+					|| (!isoCode.equals(this.originalLanguageBundle.getLanguageCode())
+					|| !countryCode.equals(this.originalLanguageBundle.getCountry())))) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	/**
 	 * Checks if the language is already translated
 	 * @param isoCode ISO-639-1 Code of the language
 	 * @return <code>true</code> if the language is already translated, <code>false</code> otherwise.
 	 */
-	public boolean isLanguageTranslated(String isoCode) {
+	public boolean isLanguageAlreadyPresent(String isoCode) {
 		for(MasterTranslationFile languageBundle : MasterTranslationFile.getAll()) {
 			// If the code is already present, we return true
 			// But if the given ISO Code is the one that had been populated, it means that we are just editing this language
-			if (languageBundle.getLanguageCode().equals(isoCode) && this.originalLanguageBundle != null && !isoCode.equals(this.originalLanguageBundle.getLanguageCode())) {
+			if (languageBundle.getLanguageCode().equals(isoCode)
+					&& (this.originalLanguageBundle == null
+					|| !languageBundle.getFilename().equals(this.originalLanguageBundle.getFilename()))) {
 				return true;
 			}
 		}

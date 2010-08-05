@@ -560,20 +560,20 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @param isoCode The ISO 639-1 Code for this language
 	 * @param countryCode The country code for the flag representing the country
 	 * @param baseLanguageCode The country code of the language file used as a base for this new translation file (not required)
+	 * @param b 
 	 * @throws IOException
 	 */
-	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode, String fontNames) throws IOException {
+	public void createNewLanguageFile(String languageName, String isoCode, String countryCode, Object baseLanguageCode, String fontNames, String filename) throws IOException {
 		FileOutputStream fos = null;
 		OutputStreamWriter osw = null;
 		PrintWriter out = null;
-		String newFilename = "frontlineSMS_" + isoCode + ".properties";
-		File newFile = new File(InternationalisationUtils.getLanguageDirectory() + File.separator, newFilename);
+		File newFile = new File(InternationalisationUtils.getLanguageDirectory() + File.separator, filename);
 		MasterTranslationFile languageBundle = MasterTranslationFile.getFromLanguageCode(this.ui.getAttachedObject(baseLanguageCode, String.class));
 		
 		if (languageBundle != null) {
 			// A base language file is used, let's copy the values
 			MasterTranslationFile newLanguageBundle = new MasterTranslationFile(languageBundle.getFilename(), languageBundle.getTranslationFiles());
-			newLanguageBundle.setFilename(newFilename);
+			newLanguageBundle.setFilename(filename);
 			newLanguageBundle.setCountry(countryCode);
 			newLanguageBundle.setLanguageName(languageName);
 			newLanguageBundle.setLanguageCode(isoCode);
@@ -607,7 +607,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		}
 		
 		this.refreshLanguageList();
-		this.selectLanguageFromFilename(newFilename);
+		this.selectLanguageFromFilename(filename);
 	}
 
 	/**
@@ -616,9 +616,10 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @param languageName The name of the language, <code>in the original language</code>
 	 * @param isoCode The ISO 639-1 Code for this language
 	 * @param countryCode The country code for the flag representing the country
+	 * @param filenameWithCountryCode 
 	 * @throws IOException
 	 */
-	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode, String fontNames) throws IOException {
+	public void updateTranslationFile(MasterTranslationFile originalLanguageBundle, String languageName, String isoCode, String countryCode, String fontNames, String filename) throws IOException {
 		MasterTranslationFile newLanguageBundle = new MasterTranslationFile(originalLanguageBundle.getFilename(), originalLanguageBundle.getTranslationFiles());
 		
 		newLanguageBundle.setCountry(countryCode);
@@ -628,12 +629,12 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		
 		newLanguageBundle.saveToDisk(InternationalisationUtils.getLanguageDirectory());
 		
-		if (!isoCode.equals(originalLanguageBundle.getLanguageCode())) {
+		if (!filename.equals(originalLanguageBundle.getFilename())) {
 			// If the ISO code has changed during the editing, we have to rename the file
+			// NB: if the filename included the countryCode, and this one changed, we rename it as well
 			File oldFile = new File(InternationalisationUtils.getLanguageDirectory(), originalLanguageBundle.getFilename());
-			String newFilename = "frontlineSMS_" + isoCode + ".properties";
-			File newFile = new File(InternationalisationUtils.getLanguageDirectory(), newFilename);
-			newLanguageBundle.setFilename(newFilename);
+			File newFile = new File(InternationalisationUtils.getLanguageDirectory(), filename);
+			newLanguageBundle.setFilename(filename);
 			oldFile.renameTo(newFile);
 		}
 		
