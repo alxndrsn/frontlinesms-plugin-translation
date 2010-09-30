@@ -15,16 +15,16 @@ public class TranslationSettingsController implements ThinletUiEventHandler, Plu
 		this.uiController = uiController;
 	}
 
-
 	public String getTitle() {
 		return this.pluginController.getName(InternationalisationUtils.getCurrentLocale());
 	}
 	
-	public Object getRootSettingsNode() {
-		Object rootSettingsNode = this.uiController.createNode(getTitle(), this.pluginController.getClass().toString());
+	public void addSubSettingsNodes(Object rootSettingsNode) {
 		this.uiController.add(rootSettingsNode, this.uiController.createNode("Test", "test"));
-		
-		return rootSettingsNode;
+	}
+	
+	public Object getRootPanel() {
+		return null;
 	}
 	
 	public Object getPanelForSection(String section) {
