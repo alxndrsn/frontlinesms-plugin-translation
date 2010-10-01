@@ -1,8 +1,10 @@
 package net.frontlinesms.plugins.translation;
 
 import net.frontlinesms.plugins.PluginSettingsController;
+import net.frontlinesms.settings.FrontlineValidationMessage;
 import net.frontlinesms.ui.ThinletUiEventHandler;
 import net.frontlinesms.ui.UiGeneratorController;
+import net.frontlinesms.ui.UiSettingsSectionHandler;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
 
 public class TranslationSettingsController implements ThinletUiEventHandler, PluginSettingsController {
@@ -20,7 +22,6 @@ public class TranslationSettingsController implements ThinletUiEventHandler, Plu
 	}
 	
 	public void addSubSettingsNodes(Object rootSettingsNode) {
-		this.uiController.add(rootSettingsNode, this.uiController.createNode("Test", "test"));
 	}
 	
 	public Object getRootPanel() {
@@ -48,9 +49,21 @@ public class TranslationSettingsController implements ThinletUiEventHandler, Plu
 		return null;
 	}
 	
+	public FrontlineValidationMessage validateFields() {
+		return null;
+	}
+	
 	enum HttpTriggerSettingsSections {
 		APPEARANCE,
 		TEST
+	}
+
+	public UiSettingsSectionHandler getHandlerForSection(String section) {
+		return null;
+	}
+
+	public UiSettingsSectionHandler getRootPanelHandler() {
+		return null;
 	}
 
 }
