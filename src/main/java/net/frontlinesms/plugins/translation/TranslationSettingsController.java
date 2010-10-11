@@ -4,8 +4,8 @@ import net.frontlinesms.plugins.PluginSettingsController;
 import net.frontlinesms.settings.FrontlineValidationMessage;
 import net.frontlinesms.ui.ThinletUiEventHandler;
 import net.frontlinesms.ui.UiGeneratorController;
-import net.frontlinesms.ui.UiSettingsSectionHandler;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
+import net.frontlinesms.ui.settings.UiSettingsSectionHandler;
 
 public class TranslationSettingsController implements ThinletUiEventHandler, PluginSettingsController {
 
