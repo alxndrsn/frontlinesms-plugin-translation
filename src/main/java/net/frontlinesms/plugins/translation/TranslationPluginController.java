@@ -58,6 +58,6 @@ public class TranslationPluginController extends BasePluginController {
 	}
 	
 	public PluginSettingsController getSettingsController(UiGeneratorController uiController) {
-		return new TranslationSettingsController(this, uiController);
+		return null;
 	}
 }
