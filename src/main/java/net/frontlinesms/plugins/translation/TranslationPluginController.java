@@ -9,7 +9,6 @@ import net.frontlinesms.FrontlineSMS;
 import net.frontlinesms.plugins.BasePluginController;
 import net.frontlinesms.plugins.PluginControllerProperties;
 import net.frontlinesms.plugins.PluginInitialisationException;
-import net.frontlinesms.plugins.PluginSettingsController;
 import net.frontlinesms.plugins.translation.TranslationThinletTabController;
 import net.frontlinesms.ui.UiGeneratorController;
 import net.frontlinesms.ui.i18n.InternationalisationUtils;
@@ -50,14 +49,5 @@ public class TranslationPluginController extends BasePluginController {
 
 	public String getTitle() {
 		return this.getName(InternationalisationUtils.getCurrentLocale());
-	}
-	
-	public Object getRootSettingsNode(UiGeneratorController uiController) {
-		Object rootSettingsNode = uiController.createNode(getTitle(), getTitle());
-		return rootSettingsNode;
-	}
-	
-	public PluginSettingsController getSettingsController(UiGeneratorController uiController) {
-		return null;
 	}
 }

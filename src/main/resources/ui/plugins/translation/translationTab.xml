@@ -19,7 +19,7 @@
 			</panel>
 			<panel gap="8" weightx="1" columns="2">
 				<textfield action="filterTranslations(this.text)" name="tfTranslationFilter" weightx="1" enabled="false"/>
-				<button type="link" icon="/icons/search.png" text=""/>
+				<button type="link" icon="/icons/search.png"/>
 				<panel name="restartFrontline" gap="8" weightx="1" columns="2" visible="false">
 					<label foreground="#FF0000" font="bold" text="i18n.plugins.translation.must.restart.frontline"/>
 					<button action="restartFrontlineSMS" icon="/icons/refresh.png" text="i18n.plugins.translation.restart.frontline"/>	
