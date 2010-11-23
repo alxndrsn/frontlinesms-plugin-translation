@@ -103,7 +103,10 @@ public class MasterTranslationFile extends LanguageBundle implements Comparable<
 				line = line.trim();
 				if(line.length() > 0 && line.charAt(0)!='#') {
 					int eqIndex = line.indexOf('=');
-
+					if (eqIndex < 0) {
+						// In case a line doesn't use the "property=value" format
+						continue;
+					}
 					// Do not overwrite entries from previous file contents
 					String key = line.substring(0, eqIndex);
 					String value = line.substring(eqIndex+1);
