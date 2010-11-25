@@ -137,7 +137,7 @@ public class LanguagePropertiesHandler implements ThinletUiEventHandler {
 		if (this.isAllOkForNewTranslation(languageName, isoCode)) {
 			String countryCode = this.ui.getAttachedObject(this.ui.getSelectedItem(countryList), String.class);
 			if (isLanguageAndCountryAlreadyPresent(isoCode, countryCode)) {
-				this.ui.alert(InternationalisationUtils.getI18NString(I18N_LANGUAGE_ALREADY_TRANSLATED));
+				this.ui.alert(InternationalisationUtils.getI18nString(I18N_LANGUAGE_ALREADY_TRANSLATED));
 			} else {
 				if (this.originalLanguageBundle == null) {
 					this.doSaveProperties();

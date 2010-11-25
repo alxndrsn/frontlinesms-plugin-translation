@@ -125,7 +125,7 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 	 */
 	public void submitTranslation (String userName, String userEmail, boolean contribute) {
 		if (this.isValidEmailAddress(userEmail)) {
-			this.ui.alert(InternationalisationUtils.getI18NString(I18N_COMMON_INVALID_EMAIL));
+			this.ui.alert(InternationalisationUtils.getI18nString(I18N_COMMON_INVALID_EMAIL));
 		} else {
 			String subject = "FrontlineSMS translation: " + this.languageBundle.getLanguageName();
 			String textContent = "Sent translation: " + this.languageBundle.getLanguageName() + " (" + this.languageBundle.getLanguageCode() + ").\n" +
@@ -133,9 +133,9 @@ public class TranslationSubmissionHandler implements ThinletUiEventHandler {
 			try {
 				FrontlineUtils.sendToFrontlineSupport(userName, userEmail, subject, textContent, InternationalisationUtils.getLanguageDirectory() + File.separator + languageBundle.getFilename());
 				this.removeDialog();
-				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SENT));
+				this.ui.infoMessage(InternationalisationUtils.getI18nString(I18N_TRANSLATION_SENT));
 			} catch (EmailException e) {
-				this.ui.alert(InternationalisationUtils.getI18NString(I18N_UNABLE_SEND_TRANSLATION));
+				this.ui.alert(InternationalisationUtils.getI18nString(I18N_UNABLE_SEND_TRANSLATION));
 			}
 		}
 	}

@@ -206,7 +206,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 		this.ui.setEnabled(this.ui.find(UI_COMPONENT_BT_SAVE), false);
 		this.languageBundles.clear();
 		this.refreshLanguagesAndReselect();
-		this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_SAVED));
+		this.ui.infoMessage(InternationalisationUtils.getI18nString(I18N_TRANSLATION_SAVED));
 		this.ui.setVisible(this.ui.find(UI_COMPONENT_PN_RESTART_FRONTLINE), true);
 	}
 	
@@ -455,7 +455,7 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 			
 			// Then we remove the file
 			if (new File(InternationalisationUtils.getLanguageDirectory() + File.separator + languageBundle.getFilename()).delete()) {
-				this.ui.infoMessage(InternationalisationUtils.getI18NString(I18N_TRANSLATION_DELETED));
+				this.ui.infoMessage(InternationalisationUtils.getI18nString(I18N_TRANSLATION_DELETED));
 			}
 			
 			// And we refresh
@@ -675,11 +675,11 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 					// Focus lost
 					if (this.languageBundles.size() > 0) {
 						// Then this means we're currently editing some translations, which need to be saved
-						this.ui.alert(InternationalisationUtils.getI18NString(I18N_WARNING_TRANSLATIONS_NOT_SAVED));
+						this.ui.alert(InternationalisationUtils.getI18nString(I18N_WARNING_TRANSLATIONS_NOT_SAVED));
 					}
 				}
 			} else {
-				this.ui.setStatus(InternationalisationUtils.getI18NString(I18N_MESSAGE_TRANSLATION_TAB_LOADED));
+				this.ui.setStatus(InternationalisationUtils.getI18nString(I18N_MESSAGE_TRANSLATION_TAB_LOADED));
 			}
 			this.shouldWarnWhenLostFocus = (newTabName.equals(UI_TRANSLATION_TAB_NAME));
 		}
