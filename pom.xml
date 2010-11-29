@@ -3,7 +3,7 @@
 	<groupId>net.frontlinesms.plugins</groupId>
 	<artifactId>frontlinesms-plugin-translation</artifactId>
 	<name>FrontlineSMS Translation Plugin</name>
-	<version>0.00.16-SNAPSHOT</version>
+	<version>0.00.17-SNAPSHOT</version>
 	<description>Translation plugin for FrontlineSMS</description>
 	<licenses>
 		<license>
@@ -38,6 +38,11 @@
 	</scm>
 	
 	<repositories>
+		<repository>
+			<id>frontlinesms.repo</id>
+			<name>FrontlineSMS Maven repository</name>
+			<url>http://dev.frontlinesms.com/m2repo</url>
+		</repository>
 		<repository>
 			<id>cleone.net.repo</id>
 			<name>Temporary FrontlineSMS repository on cleone.net</name>
