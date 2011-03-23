@@ -100,7 +100,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 
 	/** UI Event method: show the editor for the selected translation in the translation table. */
 	public void editText() {
-		System.out.println("TranslationThinletTabController.editText()");
 		String textKey = getSelectedTextKey(this.visibleTab);
 		String defaultValue = "";
 		try { defaultValue = MasterTranslationFile.getDefault().getValue(textKey); } catch(MissingResourceException ex) {};
@@ -222,7 +221,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * UI Event method: triggered when the user select a language on the left list.
 	 */
 	public void languageSelectionChanged() {
-		System.out.println("TranslationThinletTabController.languageSelectionChanged()");
 		this.refreshTables();
 		this.enableBottomButtons();
 		ui.setEnabled(getFilterTextfield(), true);
@@ -258,7 +256,6 @@ public class TranslationThinletTabController extends BasePluginThinletTabControl
 	 * @param filterText The text entered in the search bar
 	 */
 	public void filterTranslations(String filterText) {
-		System.out.println("TranslationThinletTabController.filterTranslations(" + filterText + ")");
 		filterTable(TranslationView.ALL);
 		filterTable(TranslationView.MISSING);
 	}

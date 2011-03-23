@@ -188,8 +188,8 @@ public class MasterTranslationFile extends LanguageBundle implements Comparable<
 		content.add(TextFileContent.getFromStream("FrontlineSMS Core", fis));
 		
 		// load plugin bundles for this language
-		Collection<Class<PluginController>> pluginClasses = PluginProperties.getInstance().getPluginClasses();
-		for(Class<PluginController> pluginClass : pluginClasses) {
+		Collection<Class<? extends PluginController>> pluginClasses = PluginProperties.getInstance().getPluginClasses();
+		for(Class<? extends PluginController> pluginClass : pluginClasses) {
 			try {
 				PluginController controller = pluginClass.newInstance();
 				Map<String, String> textResource;
@@ -231,8 +231,8 @@ public class MasterTranslationFile extends LanguageBundle implements Comparable<
 		content.add(TextFileContent.getFromStream("FrontlineSMS Core", InternationalisationUtils.getDefaultLanguageBundleInputStream()));
 		
 		// load default bundles for all plugins
-		Collection<Class<PluginController>> pluginClasses = PluginProperties.getInstance().getPluginClasses();
-		for(Class<PluginController> pluginClass : pluginClasses) {
+		Collection<Class<? extends PluginController>> pluginClasses = PluginProperties.getInstance().getPluginClasses();
+		for(Class<? extends PluginController> pluginClass : pluginClasses) {
 			try {
 				PluginController controller = pluginClass.newInstance();
 				content.add(TextFileContent.getFromMap(
@@ -252,7 +252,6 @@ public class MasterTranslationFile extends LanguageBundle implements Comparable<
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		System.out.println("Starting Master Language File generation...");
 		String targetDirPath = args[0];
 		File targetDir = new File(targetDirPath);
 		
@@ -262,8 +261,6 @@ public class MasterTranslationFile extends LanguageBundle implements Comparable<
 			MasterTranslationFile mtf = get(languageBundle);
 			mtf.saveToDisk(new File(targetDir, languageBundle.getFile().getName()));	
 		}
-		
-		System.out.println("Master language files generated at: " + targetDirPath);
 	}
 
 	/** Create the {@link MasterTranslationFile} for the default translation. */
